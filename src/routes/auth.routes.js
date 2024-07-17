@@ -27,8 +27,11 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "/",
+    failureRedirect: "/https://facebook.com",
     successRedirect: "https://google.com",
-  })
+  }),
+  (req, res) => {
+    res.send("Google Authenticated successfully");
+  }
 );
 export default router;
