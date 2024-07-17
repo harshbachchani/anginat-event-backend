@@ -27,7 +27,7 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "/https://facebook.com",
+    failureRedirect: "https://facebook.com",
     successRedirect: "https://google.com",
   }),
   (req, res) => {
