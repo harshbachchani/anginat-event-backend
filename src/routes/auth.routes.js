@@ -18,17 +18,17 @@ router.route("/current-user").get(verifyJWT);
 router.route("/login").post(loginWithEmail);
 
 router.get(
-  "/auth/google",
+  "/google",
   passport.authenticate("google", {
     scope: ["profile", "email"],
   })
 );
 
 router.get(
-  "/auth/google/callback",
+  "/google/callback",
   passport.authenticate("google", {
     failureRedirect: "/",
-    successRedirect: "/dashboard",
+    successRedirect: "https://google.com",
   })
 );
 export default router;

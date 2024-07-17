@@ -7,7 +7,8 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/v1/auth/auth/google/callback",
+      callbackURL: "https://anginat-event-backend.onrender.com/api/v1/auth",
+      passReqToCallback: true,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
