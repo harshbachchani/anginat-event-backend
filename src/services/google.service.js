@@ -11,7 +11,7 @@ passport.use(
         "https://anginat-event-backend.onrender.com/api/v1/auth/google/callback",
       passReqToCallback: true,
     },
-    async (accessToken, refreshToken, profile, done) => {
+    async (req, accessToken, refreshToken, profile, done) => {
       try {
         let user = await prisma.user.findUnique({
           where: { googleId: profile.id },
