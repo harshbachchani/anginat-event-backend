@@ -1,5 +1,4 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -10,7 +9,7 @@ cloudinary.config({
 const uploadOnCloudinary = async (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: "subandhan_nidhi" }, // Specify the folder name here
+      { folder: "anginat-event" }, // Specify the folder name here
       (error, result) => {
         if (error) {
           reject(error);

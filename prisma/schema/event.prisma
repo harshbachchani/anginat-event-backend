@@ -1,0 +1,11 @@
+model Event {
+    id        Int      @id @default(autoincrement())
+    name      String
+    city      String
+    image     String
+    address   String
+    date      DateTime
+    createdAt DateTime @default(now())
+    userId    Int // Foreign key field
+    user      User     @relation(fields: [userId], references: [id]) // Define the relation
+}

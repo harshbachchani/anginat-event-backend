@@ -35,8 +35,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 import authRoutes from "./routes/auth.routes.js";
-
+import eventRoutes from "./routes/event.routes.js";
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/event", eventRoutes);
 app.get("/", (req, res, next) => {
   res.send("Hello from server");
 });
