@@ -169,7 +169,7 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
         resetPasswordExpires: new Date(expiry),
       },
     });
-    const resetUrl = `https//localhost:8000/api/v1/auth/reset-password/${token}`;
+    const resetUrl = `https://anginat-event-backend.onrender.com/api/v1/auth/reset-password/${token}`;
     const message = `You are receiving this email because you (or someone else) have requested the reset of a password. Please click on the following link, or paste this into your browser to complete the process within one hour of receiving it:\n\n${resetUrl}`;
     await sendEmail({
       email: email,
