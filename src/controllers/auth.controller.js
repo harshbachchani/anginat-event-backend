@@ -169,7 +169,7 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
         resetPasswordExpires: new Date(expiry),
       },
     });
-    const resetUrl = `https//localhost:8000/api/v1/${token}`;
+    const resetUrl = `https//localhost:8000/api/v1/auth/reset-password/${token}`;
     const message = `You are receiving this email because you (or someone else) have requested the reset of a password. Please click on the following link, or paste this into your browser to complete the process within one hour of receiving it:\n\n${resetUrl}`;
     await sendEmail({
       email: email,
@@ -181,10 +181,61 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
     return next(new ApiError(500, "Internal Server Error", error));
   }
 });
+
+const verifyResetToken = asyncHandler(async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const user = await prisma.user.findUnique({
+      where: {
+        resetPasswordToken: token,
+      },
+    });
+    if (!user) return next(new ApiError(400, "Invalid Password Reset token"));
+    if (user.resetPasswordExpires < new Date()) {
+      return next(new ApiError(400, "Password Teset Token has been expired"));
+    }
+    /*
+    to give the url of the password reset form where user input the password
+    */
+    res.render("https://google.com", { token: token });
+  } catch (error) {
+    return next(new ApiError(500, "Internal Server Error", error));
+  }
+});
+
+const changePassword = asyncHandler(async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    if (!password) return next(new ApiError(400, "Password field is required"));
+    const { token } = req.params;
+    const user = await prisma.user.findUnique({
+      where: {
+        resetPasswordToken: token,
+      },
+    });
+    if (!user) return next(new ApiError(400, "Invalid Password Reset token"));
+    if (user.resetPasswordExpires < new Date()) {
+      return next(new ApiError(400, "Password Teset Token has been expired"));
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const updateduser = await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+    if (!updateduser) return next(new ApiError(500, "Cannot update password"));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Password Updated successfully"));
+  } catch (error) {
+    return next(new ApiError(500, "Internal Server Error", error));
+  }
+});
 export {
   registerWithEmail,
   fullRegisteration,
   loginWithEmail,
   refreshAccessToken,
   forgetPassword,
+  verifyResetToken,
+  changePassword,
 };

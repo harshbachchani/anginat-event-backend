@@ -5,6 +5,8 @@ import {
   loginWithEmail,
   refreshAccessToken,
   forgetPassword,
+  changePassword,
+  verifyResetToken,
 } from "../controllers/auth.controller.js";
 import passport from "passport";
 
@@ -34,4 +36,9 @@ router.get(
     res.send("Google Authenticated successfully");
   }
 );
+
+router
+  .route("/reset-password/:token")
+  .get(verifyResetToken)
+  .post(changePassword);
 export default router;
