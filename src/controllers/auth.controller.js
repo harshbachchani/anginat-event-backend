@@ -185,19 +185,22 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
 const verifyResetToken = asyncHandler(async (req, res, next) => {
   try {
     const { token } = req.params;
-    const user = await prisma.user.findUnique({
+    const users = await prisma.user.findMany({
       where: {
         resetPasswordToken: token,
       },
     });
-    if (!user) return next(new ApiError(400, "Invalid Password Reset token"));
-    if (user.resetPasswordExpires < new Date()) {
+    const myuser = users[0];
+
+    if (!myuser) return next(new ApiError(400, "Invalid Password Reset token"));
+    if (myuser.resetPasswordExpires < new Date()) {
       return next(new ApiError(400, "Password Teset Token has been expired"));
     }
     /*
     to give the url of the password reset form where user input the password
     */
-    res.render("https://google.com", { token: token });
+    // res.render("https://google.com", { token: token });
+    res.send("Hii from me");
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
@@ -208,19 +211,24 @@ const changePassword = asyncHandler(async (req, res, next) => {
     const { password } = req.body;
     if (!password) return next(new ApiError(400, "Password field is required"));
     const { token } = req.params;
-    const user = await prisma.user.findUnique({
+    const users = await prisma.user.findMany({
       where: {
         resetPasswordToken: token,
       },
     });
-    if (!user) return next(new ApiError(400, "Invalid Password Reset token"));
-    if (user.resetPasswordExpires < new Date()) {
+    const myuser = users[0];
+    if (!myuser) return next(new ApiError(400, "Invalid Password Reset token"));
+    if (myuser.resetPasswordExpires < new Date()) {
       return next(new ApiError(400, "Password Teset Token has been expired"));
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const updateduser = await prisma.user.update({
-      where: { id: user.id },
-      data: { password: hashedPassword },
+      where: { id: myuser.id },
+      data: {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
     });
     if (!updateduser) return next(new ApiError(500, "Cannot update password"));
     return res
