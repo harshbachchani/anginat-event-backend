@@ -4,6 +4,7 @@ import cors from "cors";
 import prisma from "./db/config.js";
 import passport from "passport";
 import session from "express-session";
+import cookieParser from "cookie-parser";
 const app = express();
 import "./services/google.service.js";
 const httpServer = createServer(app);
@@ -13,6 +14,7 @@ import { errHandler } from "./middlewares/err.middleware.js";
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN,
+    credentials: true,
   })
 );
 
@@ -31,15 +33,19 @@ app.use(
 
 app.use(express.urlencoded({ extended: true, limit: "16KB" }));
 app.use(express.static("public"));
+app.use(cookieParser());
 app.use(passport.initialize());
 app.use(passport.session());
 
 import authRoutes from "./routes/auth.routes.js";
 import eventRoutes from "./routes/event.routes.js";
+import eventRegistrationRoutes from "./routes/event.user.routes.js";
+
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/event", eventRoutes);
-app.get("/", (req, res, next) => {
-  res.send("Hello from server");
+app.use("/api/v1/admin/event", eventRoutes);
+app.use("/api/v1/event", eventRegistrationRoutes);
+app.get("/", async (req, res, next) => {
+  res.send("hello from server");
 });
 
 app.use(errHandler);

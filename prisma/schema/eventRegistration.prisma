@@ -1,0 +1,31 @@
+enum RegistrationMode {
+    ONLINE
+    ONSITE
+}
+
+enum PaymentStatus {
+    COMPLETED
+    FAILED
+    PENDING
+}
+
+enum EventStatus {
+    ACTIVE
+    COMPLETED
+}
+
+model EventRegistration {
+    id                 Int              @id @default(autoincrement())
+    eventId            Int
+    userName           String
+    formValues         Json
+    profile            String
+    status             EventStatus      @default(ACTIVE)
+    modeOfRegistration RegistrationMode @default(ONLINE)
+    location           String
+    paymentStatus      PaymentStatus
+    registrationDate   DateTime         @default(now())
+    QR                 String
+    event              Event            @relation(fields: [eventId], references: [id])
+    userJourneys       UserJourney[]
+}

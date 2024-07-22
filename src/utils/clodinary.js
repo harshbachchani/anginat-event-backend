@@ -21,7 +21,16 @@ const uploadOnCloudinary = async (buffer) => {
     stream.end(buffer);
   });
 };
-
+const uploadQRCodeToCloudinary = async (base64String) => {
+  try {
+    const base64Data = base64String.replace(/^data:image\/png;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+    const result = await uploadOnCloudinary(buffer);
+    return { success: true, data: result.secure_url };
+  } catch (error) {
+    return { success: false, error: error };
+  }
+};
 function getimagepublicid(url) {
   const parts = url.split("/");
   const public_id_segment = parts[parts.indexOf("upload") + 2]; // Get the segment after 'upload'
@@ -50,4 +59,4 @@ const deletefromCloudinary = async (clodinaryfilePaths, resource_type) => {
   }
 };
 
-export { uploadOnCloudinary, deletefromCloudinary };
+export { uploadOnCloudinary, deletefromCloudinary, uploadQRCodeToCloudinary };

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
   deleteEvent,
-  getEventDetails,
+  getAllCreatedEvents,
   registerEvent,
   updateEvent,
 } from "../controllers/event.controller.js";
@@ -12,7 +12,7 @@ const router = Router();
 router.use(verifyJWT);
 router
   .route("/:id")
-  .get(getEventDetails)
+  .get(getAllCreatedEvents)
   .delete(deleteEvent)
   .patch(updateEvent);
 router.route("/register").post(upload.single("image"), registerEvent);

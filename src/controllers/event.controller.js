@@ -13,35 +13,79 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     if (!imageLocalPath)
       return next(new ApiError(400, "Cannot get image local path"));
 
-    const { name, city, date, address } = req.body;
-    if (!(name && city && date && address))
-      return next(new ApiError(400, "All the fields are required"));
-    if (!Date.parse(date)) {
+    const {
+      eventName,
+      isPaid,
+      address,
+      city,
+      eventDate,
+      userJourney,
+      eventTemplate,
+      attendieType,
+    } = req.body;
+    if (
+      !(
+        eventName &&
+        isPaid &&
+        address &&
+        city &&
+        eventDate &&
+        userJourney &&
+        eventTemplate &&
+        attendieType
+      )
+    )
+      return next(new ApiError(400, "All fields are required"));
+    if (!Date.parse(eventDate)) {
       return res.status(400).json({ error: "Invalid date format" });
     }
+    if (eventDate < new Date())
+      return next(
+        new ApiError(400, "Event date should be greater then today'date")
+      );
     const image = await uploadOnCloudinary(imageLocalPath);
     if (!image)
       return next(new ApiError(501, "Error on uploading image on clodinary"));
     const event = await prisma.event.create({
       data: {
-        name,
+        eventName,
         city,
+        isPaid,
         address,
-        date: new Date(date),
+        eventDate: new Date(eventDate),
+        userJourney,
+        eventTemplate,
+        attendieType,
         image: image.url,
-        userId: req.user.id,
+        admin: { connect: { id: req.user.id } },
       },
     });
 
-    if (!event) return next(new ApiError(501, "Error in registering event"));
+    if (!event) return next(new ApiError(501, "Error in creating event"));
     return res
       .status(200)
-      .json(new ApiResponse(200, event, "Event registered"));
+      .json(new ApiResponse(200, event, "Event Created Successfully"));
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
 });
 
+const getAllCreatedEvents = asyncHandler(async (req, res, next) => {
+  try {
+    const user = req.user;
+    const { status } = req.query;
+    if (!user) return next(new ApiError("Cannot get User Details"));
+    const events = await prisma.event.findMany({
+      where: { adminId: user.id, status },
+    });
+    if (!events) return next(new ApiError(500, "Error in fetching events "));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, events, "Events fetched successfully"));
+  } catch (error) {
+    return next(new ApiError(500, "Internal Server Error", error));
+  }
+});
 const getEventDetails = asyncHandler(async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -91,12 +135,25 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       }
     }
     if (imagefile !== "") updateinfo[image] = imagefile;
-    const { name, city, address, date } = req.body;
+    const {
+      eventName,
+      isPaid,
+      address,
+      city,
+      eventDate,
+      userJourney,
+      eventTemplate,
+      attendieType,
+    } = req.body;
     const updateinfo = {};
-    if (name) updateinfo[name] = name;
-    if (city) updateinfo[city] = city;
+    if (eventName) updateinfo[eventName] = eventName;
+    if (isPaid) updateinfo[isPaid] = isPaid;
     if (address) updateinfo[address] = address;
-    if (date) updateinfo[date] = date;
+    if (city) updateinfo[city] = city;
+    if (userJourney) updateinfo[userJourney] = userJourney;
+    if (eventTemplate) updateinfo[eventTemplate] = eventTemplate;
+    if (attendieType) updateinfo[attendieType] = attendieType;
+    if (eventDate) updateinfo[eventDate] = new Date(eventDate);
     if (Object.keys(updateinfo).length === 0)
       return next(new ApiError(400, "Give atleast one of the parameters"));
     const previouseventpath = event.image;
@@ -105,8 +162,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       data: updateinfo,
     });
     if (imagefile !== "") {
-      const result = await deletefromCloudinary([previouseventpath]);
-      console.log("File deleted from clodinary ", result);
+      await deletefromCloudinary([previouseventpath]);
     }
     return res
       .status(200)
@@ -115,4 +171,10 @@ const updateEvent = asyncHandler(async (req, res, next) => {
     return next(new ApiError(500, "Internal Server Error", error));
   }
 });
-export { registerEvent, getEventDetails, deleteEvent, updateEvent };
+export {
+  registerEvent,
+  getEventDetails,
+  deleteEvent,
+  updateEvent,
+  getAllCreatedEvents,
+};

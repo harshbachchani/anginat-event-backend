@@ -11,23 +11,28 @@ import {
 import sendEmail from "../services/mail.service.js";
 import prisma from "../db/config.js";
 import crypto from "crypto";
+const cookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "None",
+};
 const registerWithEmail = asyncHandler(async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!(email && password))
       return next(new ApiError(400, "email and password are required"));
     const hashedPassword = await bcrypt.hash(password, 10);
-    const existeduser = await prisma.user.findUnique({ where: { email } });
+    const existeduser = await prisma.admin.findUnique({ where: { email } });
     if (existeduser)
       return next(new ApiError(400, "User already exist with same email"));
-    const myuser = await prisma.user.create({
+    const myuser = await prisma.admin.create({
       data: {
         email,
         password: hashedPassword,
       },
     });
 
-    const createduser = await prisma.user.findUnique({
+    const createduser = await prisma.admin.findUnique({
       where: { email },
       select: { id: true, email: true },
     });
@@ -50,17 +55,32 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
     const { userId, companyName, phoneNo } = req.body;
     if (!(userId && companyName && phoneNo))
       return next(new ApiError(400, "All fields are required"));
-    const user = await prisma.user.findUnique({
+    const user = await prisma.admin.findUnique({
       where: { id: Number(userId) },
     });
     if (!user) return next(new ApiError(400, "Invalid User Id"));
+    if (user.companyName && user.phoneNo)
+      return next(
+        new ApiError(
+          400,
+          "Phone no and company name of user already exist please login directly"
+        )
+      );
+    const existingusers = await prisma.admin.findMany({
+      where: { phoneNo },
+    });
+    if (existingusers.length > 0)
+      return new ApiError(
+        400,
+        "User with this phone no already exist use different values"
+      );
     const accessToken = await generateAccessToken(user);
     const refreshToken = await generateRefreshToken(user);
     if (!(accessToken && refreshToken))
       return next(
         new ApiError(501, "Error in generating access and refresh token ")
       );
-    const updateduser = await prisma.user.update({
+    const updateduser = await prisma.admin.update({
       where: { id: Number(userId) },
       data: {
         companyName,
@@ -69,11 +89,13 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
       },
     });
     if (!updateduser) return next(new ApiError(501, "Error in updating user"));
-    const xuser = await prisma.user.findUnique({
+    const xuser = await prisma.admin.findUnique({
       where: { id: updateduser.id },
     });
 
     const { password, ...userwithoutpassword } = xuser;
+    res.cookie("accessToken", accessToken, cookieOptions);
+    res.cookie("refreshToken", refreshToken, cookieOptions);
     return res
       .status(200)
       .json(
@@ -93,7 +115,7 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
     const { email, password } = req.body;
     if (!(email && password))
       return next(new ApiError(400, "Email and password fields are required"));
-    const myuser = await prisma.user.findUnique({ where: { email } });
+    const myuser = await prisma.admin.findUnique({ where: { email } });
     if (!myuser)
       return next(new ApiError(400, "User not exist please register first"));
     const isMatch = await isPasswordCorrect(myuser, password);
@@ -104,11 +126,12 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(500, "Internal Server Error while generating token")
       );
-    const updateduser = await prisma.user.update({
+    const updateduser = await prisma.admin.update({
       where: { id: myuser.id },
       data: { refreshToken },
     });
-
+    res.cookie("accessToken", accessToken, cookieOptions);
+    res.cookie("refreshToken", refreshToken, cookieOptions);
     return res
       .status(200)
       .json(
@@ -125,13 +148,13 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
 
 const refreshAccessToken = asyncHandler(async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
+    const { refreshToken } = req.cookies || req.body;
     if (!refreshToken)
       return next(new ApiError(400, "Refresh Token is required"));
     const decodedtoken = await jwt.verify(refreshToken);
     if (!decodedtoken)
       return next(new ApiError(400, "Token Expired Or Invalid"));
-    const myuser = await prisma.user.findUnique({
+    const myuser = await prisma.admin.findUnique({
       where: { id: decodedtoken.id },
     });
     if (!myuser) return next(new ApiError(400, "User don't exist"));
@@ -140,6 +163,7 @@ const refreshAccessToken = asyncHandler(async (req, res, next) => {
     const accessToken = await generateAccessToken(myuser);
     if (!accessToken)
       return next(new ApiError(500, "Error generating access token"));
+    res.cookie("accessToken", accessToken, cookieOptions);
     return res
       .status(200)
       .json(
@@ -158,11 +182,11 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
   try {
     const { email } = req.body;
     if (!email) return next(new ApiError(400, "Email is required"));
-    const myuser = await prisma.user.findUnique({ where: { email } });
+    const myuser = await prisma.admin.findUnique({ where: { email } });
     if (!myuser) return next(new ApiError(400, "User not exist"));
     const token = crypto.randomBytes(20).toString("hex");
     const expiry = Date.now() + 3600000;
-    await prisma.user.update({
+    await prisma.admin.update({
       where: { email },
       data: {
         resetPasswordToken: token,
@@ -185,7 +209,7 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
 const verifyResetToken = asyncHandler(async (req, res, next) => {
   try {
     const { token } = req.params;
-    const users = await prisma.user.findMany({
+    const users = await prisma.admin.findMany({
       where: {
         resetPasswordToken: token,
       },
@@ -211,7 +235,7 @@ const changePassword = asyncHandler(async (req, res, next) => {
     const { password } = req.body;
     if (!password) return next(new ApiError(400, "Password field is required"));
     const { token } = req.params;
-    const users = await prisma.user.findMany({
+    const users = await prisma.admin.findMany({
       where: {
         resetPasswordToken: token,
       },
@@ -222,7 +246,7 @@ const changePassword = asyncHandler(async (req, res, next) => {
       return next(new ApiError(400, "Password Teset Token has been expired"));
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const updateduser = await prisma.user.update({
+    const updateduser = await prisma.admin.update({
       where: { id: myuser.id },
       data: {
         password: hashedPassword,

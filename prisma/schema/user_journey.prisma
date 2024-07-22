@@ -1,0 +1,11 @@
+model UserJourney {
+    id                Int               @id @default(autoincrement())
+    value             Boolean
+    action            String
+    eventId           Int
+    userId            Int
+    createdAt         DateTime          @default(now())
+    order             Int?
+    event             Event             @relation(fields: [eventId], references: [id])
+    EventRegistration EventRegistration @relation(fields: [userId], references: [id])
+}

@@ -1,11 +1,17 @@
 model Event {
-    id        Int      @id @default(autoincrement())
-    name      String
-    city      String
-    image     String
-    address   String
-    date      DateTime
-    createdAt DateTime @default(now())
-    userId    Int // Foreign key field
-    user      User     @relation(fields: [userId], references: [id]) // Define the relation
+    id                 Int                 @id @default(autoincrement())
+    eventName          String
+    isPaid             Boolean
+    image              String
+    address            String
+    city               String
+    eventDate          DateTime
+    userJourney        String[]
+    eventTemplate      Json
+    attendieType       String[]
+    createdAt          DateTime            @default(now())
+    adminId            Int // Foreign key field
+    admin              Admin               @relation(fields: [adminId], references: [id]) // Define the relation
+    eventRegistrations EventRegistration[]
+    userJournerys      UserJourney[]
 }
