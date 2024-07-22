@@ -9,18 +9,13 @@ enum PaymentStatus {
     PENDING
 }
 
-enum EventStatus {
-    ACTIVE
-    COMPLETED
-}
-
 model EventRegistration {
-    id                 Int              @id @default(autoincrement())
-    eventId            Int
-    userName           String
-    formValues         Json
-    profile            String
-    status             EventStatus      @default(ACTIVE)
+    id         Int    @id @default(autoincrement())
+    eventId    Int
+    userName   String
+    formValues Json
+    profile    String
+
     modeOfRegistration RegistrationMode @default(ONLINE)
     location           String
     paymentStatus      PaymentStatus

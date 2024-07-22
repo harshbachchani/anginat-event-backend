@@ -23,6 +23,7 @@ const registerEvent = asyncHandler(async (req, res, next) => {
       eventTemplate,
       attendieType,
     } = req.body;
+
     if (
       !(
         eventName &&
@@ -39,10 +40,14 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     if (!Date.parse(eventDate)) {
       return res.status(400).json({ error: "Invalid date format" });
     }
-    if (eventDate < new Date())
+    if (new Date(eventDate) < new Date())
       return next(
         new ApiError(400, "Event date should be greater then today'date")
       );
+    const parsedUserJourney = JSON.parse(userJourney);
+    const parsedAttendieType = JSON.parse(attendieType);
+    const parsedEventTemplate = JSON.parse(eventTemplate);
+
     const image = await uploadOnCloudinary(imageLocalPath);
     if (!image)
       return next(new ApiError(501, "Error on uploading image on clodinary"));
@@ -50,14 +55,14 @@ const registerEvent = asyncHandler(async (req, res, next) => {
       data: {
         eventName,
         city,
-        isPaid,
+        isPaid: Boolean(isPaid),
         address,
         eventDate: new Date(eventDate),
-        userJourney,
-        eventTemplate,
-        attendieType,
+        userJourney: parsedUserJourney,
+        eventTemplate: parsedEventTemplate,
+        attendieType: parsedAttendieType,
         image: image.url,
-        admin: { connect: { id: req.user.id } },
+        adminId: parseInt(req.user.id),
       },
     });
 

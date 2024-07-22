@@ -1,3 +1,8 @@
+enum EventStatus {
+    ACTIVE
+    COMPLETED
+}
+
 model Event {
     id                 Int                 @id @default(autoincrement())
     eventName          String
@@ -6,6 +11,7 @@ model Event {
     address            String
     city               String
     eventDate          DateTime
+    status             EventStatus         @default(ACTIVE)
     userJourney        String[]
     eventTemplate      Json
     attendieType       String[]

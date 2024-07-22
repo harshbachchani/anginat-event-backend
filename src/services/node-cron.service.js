@@ -1,6 +1,5 @@
 import cron from "node-cron";
 import prisma from "../db/config.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
 
 const scheduleTask = cron.schedule("0 * * * *", async () => {
   try {
