@@ -7,6 +7,7 @@ import {
   uploadOnCloudinary,
 } from "../utils/clodinary.js";
 import { generateQRForUser } from "../services/qrGenerator.service.js";
+import { convertDateToIST } from "../services/dateconversion.service.js";
 
 const userEventRegistration = asyncHandler(async (req, res, next) => {
   try {
@@ -19,7 +20,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
     if (!(userName && formValues && location))
       return next(new ApiError(400, "All fields are required"));
     const eventDetail = await prisma.event.findUnique({
-      where: { id: eventId },
+      where: { id: parseInt(eventId) },
     });
     if (!eventDetail)
       return next(
@@ -30,18 +31,20 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(503, "Server Error while uploading image on clodinary")
       );
+    const parsedFormValues = JSON.parse(formValues);
 
     const userDetail = await prisma.eventRegistration.create({
       data: {
-        event: { connect: { id: eventId } },
+        event: { connect: { id: parseInt(eventId) } },
         profile: profile.url,
         location,
         userName,
-        formValues,
+        formValues: parsedFormValues,
         paymentStatus: "PENDING", //this can be modified further
         QR: "url", //url of the qr generated
       },
     });
+
     if (!userDetail)
       return next(
         new ApiError(500, "Server Error while registering user to event")
@@ -74,14 +77,18 @@ const getAllEvents = asyncHandler(async (req, res, next) => {
       select: {
         id: true,
         eventName: true,
-        iamge: true,
+        image: true,
         city: true,
+        eventDate: true,
       },
     });
     if (!events)
       return next(
         new ApiError(500, "Internal Server Error while fetching events")
       );
+    for (let event of events) {
+      event.eventDate = convertDateToIST(event.eventDate);
+    }
     return res
       .status(200)
       .json(new ApiResponse(200, events, "Events Fetched Successfully"));
@@ -95,9 +102,10 @@ const getEventById = asyncHandler(async (req, res, next) => {
     const { eventId } = req.params;
     if (!eventId) return next(new ApiError(400, "Event Id is required"));
     const event = await prisma.event.findUnique({
-      where: { id: eventId, status: "ACTIVE" },
+      where: { id: parseInt(eventId), status: "ACTIVE" },
     });
     if (!event) return next(new ApiError(404, "No such event exist"));
+    event.eventDate = convertDateToIST(event.eventDate);
     return res
       .status(200)
       .json(new ApiResponse(200, event, "Event fetched successfully"));

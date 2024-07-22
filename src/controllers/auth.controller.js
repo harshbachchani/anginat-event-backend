@@ -117,7 +117,7 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
       return next(new ApiError(400, "Email and password fields are required"));
     const myuser = await prisma.admin.findUnique({ where: { email } });
     if (!myuser)
-      return next(new ApiError(400, "User not exist please register first"));
+      return next(new ApiError(400, "User do not exist please register first"));
     const isMatch = await isPasswordCorrect(myuser, password);
     if (!isMatch) return next(new ApiError(400, "Incorrect credentials"));
     const accessToken = await generateAccessToken(myuser);

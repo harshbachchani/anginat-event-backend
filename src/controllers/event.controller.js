@@ -2,6 +2,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import prisma from "../db/config.js";
+import { convertDateToIST } from "../services/dateconversion.service.js";
 import {
   deletefromCloudinary,
   uploadOnCloudinary,
@@ -67,6 +68,7 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     });
 
     if (!event) return next(new ApiError(501, "Error in creating event"));
+    event.eventDate = convertDateToIST(event.eventDate);
     return res
       .status(200)
       .json(new ApiResponse(200, event, "Event Created Successfully"));
@@ -82,8 +84,18 @@ const getAllCreatedEvents = asyncHandler(async (req, res, next) => {
     if (!user) return next(new ApiError("Cannot get User Details"));
     const events = await prisma.event.findMany({
       where: { adminId: user.id, status },
+      select: {
+        id: true,
+        eventName: true,
+        image: true,
+        city: true,
+        eventDate: true,
+      },
     });
     if (!events) return next(new ApiError(500, "Error in fetching events "));
+    for (let event of events) {
+      event.eventDate = convertDateToIST(event.eventDate);
+    }
     return res
       .status(200)
       .json(new ApiResponse(200, events, "Events fetched successfully"));
@@ -95,10 +107,11 @@ const getEventDetails = asyncHandler(async (req, res, next) => {
   try {
     const { id } = req.params;
     const event = await prisma.event.findUnique({
-      where: { id },
+      where: { id: parseInt(id) },
     });
     if (!event)
       return next(new ApiError(400, "Cannot get event with provided Id"));
+    event.eventDate = convertDateToIST(event.eventDate);
     return res
       .status(200)
       .json(new ApiResponse(200, event, "Event details fetched successfully"));
@@ -110,14 +123,16 @@ const getEventDetails = asyncHandler(async (req, res, next) => {
 const deleteEvent = asyncHandler(async (req, res, next) => {
   try {
     const { id } = req.params;
-    const event = await prisma.event.findUnique({ where: { id } });
+    const event = await prisma.event.findUnique({
+      where: { id: parseInt(id) },
+    });
     if (!event) {
       return next(new ApiError(400, "Cannot get event with provided Id"));
     }
-    await prisma.event.delete({ where: { id } });
+    await prisma.event.delete({ where: { id: parseInt(id) } });
     const clodinarypath = event.image;
     const result = await deletefromCloudinary([clodinarypath]);
-    console.log("File deleted successfully ", result);
+
     return res
       .status(200)
       .json(new ApiResponse(200, {}, "Event deleted successfully"));
@@ -128,7 +143,9 @@ const deleteEvent = asyncHandler(async (req, res, next) => {
 const updateEvent = asyncHandler(async (req, res, next) => {
   try {
     const { id } = req.params;
-    const event = await prisma.event.findUnique({ where: { id } });
+    const event = await prisma.event.findUnique({
+      where: { id: parseInt(id) },
+    });
     if (!event)
       return next(new ApiError(400, "Cannot get event with provided Id"));
     const imageLocalPath = req.file?.buffer;
@@ -139,7 +156,8 @@ const updateEvent = asyncHandler(async (req, res, next) => {
         return next(new ApiError(501, "Error while uploading on clodinary"));
       }
     }
-    if (imagefile !== "") updateinfo[image] = imagefile;
+
+    if (imagefile !== "") updateinfo["image"] = imagefile;
     const {
       eventName,
       isPaid,
@@ -151,24 +169,36 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       attendieType,
     } = req.body;
     const updateinfo = {};
-    if (eventName) updateinfo[eventName] = eventName;
-    if (isPaid) updateinfo[isPaid] = isPaid;
-    if (address) updateinfo[address] = address;
-    if (city) updateinfo[city] = city;
-    if (userJourney) updateinfo[userJourney] = userJourney;
-    if (eventTemplate) updateinfo[eventTemplate] = eventTemplate;
-    if (attendieType) updateinfo[attendieType] = attendieType;
-    if (eventDate) updateinfo[eventDate] = new Date(eventDate);
+    if (eventName) updateinfo["eventName"] = eventName;
+    if (isPaid) updateinfo["isPaid"] = isPaid;
+    if (address) updateinfo["address"] = address;
+    if (city) updateinfo["city"] = city;
+    if (userJourney) {
+      const parsedUserJourney = JSON.parse(userJourney);
+      updateinfo["userJourney"] = parsedUserJourney;
+    }
+    if (eventTemplate) {
+      const parsedEventTemplate = JSON.parse(eventTemplate);
+      updateinfo["eventTemplate"] = parsedEventTemplate;
+    }
+    if (attendieType) {
+      const parsedAttendieType = JSON.parse(attendieType);
+      updateinfo["attendieType"] = parsedAttendieType;
+    }
+    if (eventDate) updateinfo["eventDate"] = new Date(eventDate);
+
     if (Object.keys(updateinfo).length === 0)
       return next(new ApiError(400, "Give atleast one of the parameters"));
     const previouseventpath = event.image;
     const updatedevent = await prisma.event.update({
-      where: { id },
+      where: { id: parseInt(id) },
       data: updateinfo,
     });
+    updatedevent.eventDate = convertDateToIST(updatedevent.eventDate);
     if (imagefile !== "") {
       await deletefromCloudinary([previouseventpath]);
     }
+
     return res
       .status(200)
       .json(new ApiResponse(200, updatedevent, "Updated Successfully"));

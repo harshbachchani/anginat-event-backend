@@ -10,12 +10,11 @@ enum PaymentStatus {
 }
 
 model EventRegistration {
-    id         Int    @id @default(autoincrement())
-    eventId    Int
-    userName   String
-    formValues Json
-    profile    String
-
+    id                 Int              @id @default(autoincrement())
+    eventId            Int
+    userName           String
+    formValues         Json
+    profile            String
     modeOfRegistration RegistrationMode @default(ONLINE)
     location           String
     paymentStatus      PaymentStatus
