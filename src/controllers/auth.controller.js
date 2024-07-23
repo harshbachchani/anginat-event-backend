@@ -200,7 +200,9 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
       subject: "Password Reset",
       message,
     });
-    return res.status(200).json(new ApiResponse(200, {}, "Email sent"));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Email sent For Password Reset"));
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
@@ -257,7 +259,7 @@ const changePassword = asyncHandler(async (req, res, next) => {
     if (!updateduser) return next(new ApiError(500, "Cannot update password"));
     return res
       .status(200)
-      .json(new ApiResponse(200, {}, "Password Updated successfully"));
+      .json(new ApiResponse(200, {}, "Password Reset successfully"));
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
