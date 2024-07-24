@@ -45,11 +45,15 @@ const registerEvent = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(400, "Event date should be greater then today'date")
       );
-    // const parsedUserJourney = JSON.parse(userJourney);
-    // const parsedAttendieType = JSON.parse(attendieType);
     const parsedEventTemplate = JSON.parse(eventTemplate);
-    console.log(typeof userJourney);
-    console.log(typeof attendieType);
+
+    const parsedUserJourney = JSON.parse(userJourney);
+
+    const parsedAttendieType = JSON.parse(attendieType);
+    console.log(typeof parsedUserJourney);
+    console.log(typeof parsedAttendieType);
+    console.log(typeof parsedEventTemplate);
+
     const image = await uploadOnCloudinary(imageLocalPath);
     if (!image)
       return next(new ApiError(501, "Error on uploading image on clodinary"));
@@ -60,9 +64,9 @@ const registerEvent = asyncHandler(async (req, res, next) => {
         isPaid: Boolean(isPaid),
         address,
         eventDate: new Date(eventDate),
-        userJourney,
+        userJourney: parsedUserJourney,
         eventTemplate: parsedEventTemplate,
-        attendieType,
+        attendieType: parsedAttendieType,
         image: image.url,
         adminId: parseInt(req.user.id),
       },
