@@ -149,6 +149,8 @@ const updateEvent = asyncHandler(async (req, res, next) => {
     if (!event)
       return next(new ApiError(400, "Cannot get event with provided Id"));
     console.log("HII");
+    const updateinfo = {};
+
     const imageLocalPath = req.file?.buffer;
     let imagefile = "";
     if (imageLocalPath) {
@@ -171,28 +173,35 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       attendieType,
     } = req.body;
 
-    const updateinfo = {};
     if (eventName) updateinfo["eventName"] = eventName;
     if (isPaid) updateinfo["isPaid"] = isPaid;
     if (address) updateinfo["address"] = address;
     if (city) updateinfo["city"] = city;
     console.log("Now here");
     if (userJourney) {
-      const parsedUserJourney = JSON.parse(userJourney);
-      console.log("No error in parsing");
-      updateinfo["userJourney"] = parsedUserJourney;
+      try {
+        const parsedUserJourney = JSON.parse(userJourney);
+        updateinfo["userJourney"] = parsedUserJourney;
+      } catch (err) {}
     }
     console.log("Here");
     // if (eventTemplate) {
-    //   const parsedEventTemplate = JSON.parse(eventTemplate);
-    //   console.log("No error in parsing eventTemplate");
-    //   updateinfo["eventTemplate"] = parsedEventTemplate;
+    //   try {
+    //     const parsedEventTemplate = JSON.parse(eventTemplate);
+
+    //     updateinfo["eventTemplate"] = parsedEventTemplate;
+    //   } catch (error) {
+    //     return next(new ApiError(400, "Invalid JSON for Event Template"));
+    //   }
     // }
     console.log("Now Here");
     if (attendieType) {
-      const parsedAttendieType = JSON.parse(attendieType);
-      console.log("No error in parsing Attendie Type");
-      updateinfo["attendieType"] = parsedAttendieType;
+      try {
+        const parsedAttendieType = JSON.parse(attendieType);
+        updateinfo["attendieType"] = parsedAttendieType;
+      } catch (error) {
+        return next(new ApiError(400, "Invalid JSON for Attendie Type"));
+      }
     }
     console.log("Now I am Here");
     if (eventDate) updateinfo["eventDate"] = new Date(eventDate);
@@ -201,10 +210,12 @@ const updateEvent = asyncHandler(async (req, res, next) => {
     if (Object.keys(updateinfo).length === 0)
       return next(new ApiError(400, "Give atleast one of the parameters"));
     const previouseventpath = event.image;
+    console.log("what I am hree");
     const updatedevent = await prisma.event.update({
       where: { id: parseInt(id) },
       data: updateinfo,
     });
+    console.log("Conversion can be done");
     updatedevent.eventDate = convertDateToIST(updatedevent.eventDate);
     console.log("Conversion is not possible");
     if (imagefile !== "") {
