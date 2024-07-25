@@ -148,6 +148,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
     });
     if (!event)
       return next(new ApiError(400, "Cannot get event with provided Id"));
+    console.log("HII");
     const imageLocalPath = req.file?.buffer;
     let imagefile = "";
     if (imageLocalPath) {
@@ -156,8 +157,9 @@ const updateEvent = asyncHandler(async (req, res, next) => {
         return next(new ApiError(501, "Error while uploading on clodinary"));
       }
     }
+    console.log("Hello");
+    if (imagefile !== "") updateinfo["image"] = imagefile.url;
 
-    if (imagefile !== "") updateinfo["image"] = imagefile;
     const {
       eventName,
       isPaid,
@@ -178,16 +180,20 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       const parsedUserJourney = JSON.parse(userJourney);
       updateinfo["userJourney"] = parsedUserJourney;
     }
+    console.log("Here");
     if (eventTemplate) {
       const parsedEventTemplate = JSON.parse(eventTemplate);
       updateinfo["eventTemplate"] = parsedEventTemplate;
     }
+    console.log("Now Here");
     if (attendieType) {
       const parsedAttendieType = JSON.parse(attendieType);
       updateinfo["attendieType"] = parsedAttendieType;
     }
+    console.log("Now I am Here");
     if (eventDate) updateinfo["eventDate"] = new Date(eventDate);
 
+    console.log("Now I am there Here");
     if (Object.keys(updateinfo).length === 0)
       return next(new ApiError(400, "Give atleast one of the parameters"));
     const previouseventpath = event.image;
@@ -196,6 +202,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       data: updateinfo,
     });
     updatedevent.eventDate = convertDateToIST(updatedevent.eventDate);
+    console.log("Conversion is not possible");
     if (imagefile !== "") {
       await deletefromCloudinary([previouseventpath]);
     }
