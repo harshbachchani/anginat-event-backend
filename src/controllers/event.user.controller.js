@@ -74,13 +74,6 @@ const getAllEvents = asyncHandler(async (req, res, next) => {
       where: {
         status: "ACTIVE",
       },
-      select: {
-        id: true,
-        eventName: true,
-        image: true,
-        city: true,
-        eventDate: true,
-      },
     });
     if (!events)
       return next(

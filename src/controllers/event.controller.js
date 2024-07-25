@@ -89,13 +89,6 @@ const getAllCreatedEvents = asyncHandler(async (req, res, next) => {
     if (!user) return next(new ApiError("Cannot get User Details"));
     const events = await prisma.event.findMany({
       where: { adminId: user.id, status },
-      select: {
-        id: true,
-        eventName: true,
-        image: true,
-        city: true,
-        eventDate: true,
-      },
     });
     if (!events) return next(new ApiError(500, "Error in fetching events "));
     for (let event of events) {
