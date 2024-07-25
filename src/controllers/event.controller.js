@@ -159,7 +159,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
     }
     console.log("Hello");
     if (imagefile !== "") updateinfo["image"] = imagefile.url;
-
+    console.log("There");
     const {
       eventName,
       isPaid,
@@ -176,8 +176,10 @@ const updateEvent = asyncHandler(async (req, res, next) => {
     if (isPaid) updateinfo["isPaid"] = isPaid;
     if (address) updateinfo["address"] = address;
     if (city) updateinfo["city"] = city;
+    console.log("Now here");
     if (userJourney) {
       const parsedUserJourney = JSON.parse(userJourney);
+      console.log("No error in parsing");
       updateinfo["userJourney"] = parsedUserJourney;
     }
     console.log("Here");
