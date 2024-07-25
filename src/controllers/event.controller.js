@@ -50,9 +50,6 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     const parsedUserJourney = JSON.parse(userJourney);
 
     const parsedAttendieType = JSON.parse(attendieType);
-    console.log(typeof parsedUserJourney);
-    console.log(typeof parsedAttendieType);
-    console.log(typeof parsedEventTemplate);
 
     const image = await uploadOnCloudinary(imageLocalPath);
     if (!image)
@@ -140,14 +137,12 @@ const deleteEvent = asyncHandler(async (req, res, next) => {
 });
 const updateEvent = asyncHandler(async (req, res, next) => {
   try {
-    console.log(req.body);
     const { id } = req.params;
     const event = await prisma.event.findUnique({
       where: { id: parseInt(id) },
     });
     if (!event)
       return next(new ApiError(400, "Cannot get event with provided Id"));
-    console.log("HII");
     const updateinfo = {};
 
     const imageLocalPath = req.file?.buffer;
@@ -197,7 +192,6 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       }
     }
     if (eventDate) updateinfo["eventDate"] = new Date(eventDate);
-    console.log("Now I am there Here");
     if (Object.keys(updateinfo).length === 0)
       return next(new ApiError(400, "Give atleast one of the parameters"));
     const previouseventpath = event.image;

@@ -66,8 +66,10 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       where: { id: userDetail.id },
       data: { QR: result.data },
     });
+
     //the user's phone no should be paste there
     const validatePhone = await registerPhoneNo(userName, "9057177525");
+
     if (!validatePhone.success) {
       return next(
         new ApiError(
@@ -77,6 +79,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
         )
       );
     }
+    console.log(validatePhone.data);
     //this would be user's phone no
     const sendmsg = await sendWhatsappMsg("9057177525");
     if (!sendmsg.success) {
@@ -84,6 +87,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
         new ApiError(500, "Error sending whatsapp message", sendmsg.error)
       );
     }
+    console.log(sendmsg.data);
     return res
       .status(200)
       .json(

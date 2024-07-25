@@ -10,7 +10,7 @@ const registerPhoneNo = async (name, phoneNumber) => {
         name,
       },
     };
-    const response = axios.post(url, data, {
+    const response = await axios.post(url, data, {
       headers: {
         Authorization: `Basic ${process.env.WHATSAPP_API}`,
         "Content-Type": "applicaton/json",
@@ -37,6 +37,13 @@ const sendWhatsappMsg = async (phoneNumber) => {
         bodyValues: ["body_variable_value_1"], //the variable which I had to update
       },
     };
+    const response = await axios.post(url, data, {
+      headers: {
+        Authorization: `Basic ${process.env.WHATSAPP_API}`,
+        "Content-Type": "applicaton/json",
+      },
+    });
+    return { success: true, data: response };
   } catch (error) {
     return { success: false, error };
   }
