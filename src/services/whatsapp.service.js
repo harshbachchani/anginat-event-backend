@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const registerPhoneNo = async (name, email, phoneNumber) => {
+const registerPhoneNo = async (name, phoneNumber) => {
   try {
     const url = "https://api.interakt.ai/v1/public/track/users/";
     const data = {
@@ -8,7 +8,6 @@ const registerPhoneNo = async (name, email, phoneNumber) => {
       countryCode: "+91",
       traits: {
         name,
-        email,
       },
     };
     const response = axios.post(url, data, {
@@ -23,7 +22,7 @@ const registerPhoneNo = async (name, email, phoneNumber) => {
   }
 };
 
-const sendMessage = async (phoneNumber) => {
+const sendWhatsappMsg = async (phoneNumber) => {
   try {
     const url = "https://api.interakt.ai/v1/public/message/";
 
@@ -35,10 +34,12 @@ const sendMessage = async (phoneNumber) => {
       template: {
         name: "browse_catalog_on_whatsapp",
         languageCode: "en",
-        bodyValues: ["body_variable_value_1"],
+        bodyValues: ["body_variable_value_1"], //the variable which I had to update
       },
     };
   } catch (error) {
     return { success: false, error };
   }
 };
+
+export { sendWhatsappMsg, registerPhoneNo };

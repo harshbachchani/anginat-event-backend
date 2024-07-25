@@ -10,7 +10,6 @@ import {
 
 const registerEvent = asyncHandler(async (req, res, next) => {
   try {
-    console.log(req.body);
     const imageLocalPath = req.file?.buffer;
     if (!imageLocalPath)
       return next(new ApiError(400, "Cannot get image local path"));
@@ -159,9 +158,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
         return next(new ApiError(501, "Error while uploading on clodinary"));
       }
     }
-    console.log("Hello");
     if (imagefile !== "") updateinfo["image"] = imagefile.url;
-    console.log("There");
     const {
       eventName,
       isPaid,
@@ -172,19 +169,16 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       eventTemplate,
       attendieType,
     } = req.body;
-
     if (eventName) updateinfo["eventName"] = eventName;
     if (isPaid) updateinfo["isPaid"] = isPaid;
     if (address) updateinfo["address"] = address;
     if (city) updateinfo["city"] = city;
-    console.log("Now here");
     if (userJourney) {
       try {
         const parsedUserJourney = JSON.parse(userJourney);
         updateinfo["userJourney"] = parsedUserJourney;
       } catch (err) {}
     }
-    console.log("Here");
     // if (eventTemplate) {
     //   try {
     //     const parsedEventTemplate = JSON.parse(eventTemplate);
@@ -194,7 +188,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
     //     return next(new ApiError(400, "Invalid JSON for Event Template"));
     //   }
     // }
-    console.log("Now Here");
+
     if (attendieType) {
       try {
         const parsedAttendieType = JSON.parse(attendieType);
@@ -203,21 +197,17 @@ const updateEvent = asyncHandler(async (req, res, next) => {
         return next(new ApiError(400, "Invalid JSON for Attendie Type"));
       }
     }
-    console.log("Now I am Here");
     if (eventDate) updateinfo["eventDate"] = new Date(eventDate);
-
     console.log("Now I am there Here");
     if (Object.keys(updateinfo).length === 0)
       return next(new ApiError(400, "Give atleast one of the parameters"));
     const previouseventpath = event.image;
-    console.log("what I am hree");
+    console.log(updateinfo);
     const updatedevent = await prisma.event.update({
       where: { id: parseInt(id) },
       data: updateinfo,
     });
-    console.log("Conversion can be done");
     updatedevent.eventDate = convertDateToIST(updatedevent.eventDate);
-    console.log("Conversion is not possible");
     if (imagefile !== "") {
       await deletefromCloudinary([previouseventpath]);
     }

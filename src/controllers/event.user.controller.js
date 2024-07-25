@@ -8,6 +8,10 @@ import {
 } from "../utils/clodinary.js";
 import { generateQRForUser } from "../services/qrGenerator.service.js";
 import { convertDateToIST } from "../services/dateconversion.service.js";
+import {
+  registerPhoneNo,
+  sendWhatsappMsg,
+} from "../services/whatsapp.service.js";
 
 const userEventRegistration = asyncHandler(async (req, res, next) => {
   try {
@@ -31,8 +35,12 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(503, "Server Error while uploading image on clodinary")
       );
-    const parsedFormValues = JSON.parse(formValues);
-
+    let parsedFormValues;
+    try {
+      parsedFormValues = JSON.parse(formValues);
+    } catch (error) {
+      return next(new ApiError(400, "Error in parsing JSON for Form Values"));
+    }
     const userDetail = await prisma.eventRegistration.create({
       data: {
         event: { connect: { id: parseInt(eventId) } },
@@ -58,6 +66,24 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       where: { id: userDetail.id },
       data: { QR: result.data },
     });
+    //the user's phone no should be paste there
+    const validatePhone = await registerPhoneNo(userName, "9057177525");
+    if (!validatePhone.success) {
+      return next(
+        new ApiError(
+          500,
+          "Error while validation phone no ",
+          validatePhone.error
+        )
+      );
+    }
+    //this would be user's phone no
+    const sendmsg = await sendWhatsappMsg("9057177525");
+    if (!sendmsg.success) {
+      return next(
+        new ApiError(500, "Error sending whatsapp message", sendmsg.error)
+      );
+    }
     return res
       .status(200)
       .json(
