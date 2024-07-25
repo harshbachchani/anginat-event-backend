@@ -183,13 +183,15 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       updateinfo["userJourney"] = parsedUserJourney;
     }
     console.log("Here");
-    if (eventTemplate) {
-      const parsedEventTemplate = JSON.parse(eventTemplate);
-      updateinfo["eventTemplate"] = parsedEventTemplate;
-    }
+    // if (eventTemplate) {
+    //   const parsedEventTemplate = JSON.parse(eventTemplate);
+    //   console.log("No error in parsing eventTemplate");
+    //   updateinfo["eventTemplate"] = parsedEventTemplate;
+    // }
     console.log("Now Here");
     if (attendieType) {
       const parsedAttendieType = JSON.parse(attendieType);
+      console.log("No error in parsing Attendie Type");
       updateinfo["attendieType"] = parsedAttendieType;
     }
     console.log("Now I am Here");
