@@ -170,7 +170,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       attendieType,
     } = req.body;
     if (eventName) updateinfo["eventName"] = eventName;
-    if (isPaid) updateinfo["isPaid"] = isPaid;
+    if (isPaid) updateinfo["isPaid"] = Boolean(isPaid);
     if (address) updateinfo["address"] = address;
     if (city) updateinfo["city"] = city;
     if (userJourney) {
