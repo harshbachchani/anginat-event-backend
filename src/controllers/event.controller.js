@@ -179,15 +179,14 @@ const updateEvent = asyncHandler(async (req, res, next) => {
         updateinfo["userJourney"] = parsedUserJourney;
       } catch (err) {}
     }
-    // if (eventTemplate) {
-    //   try {
-    //     const parsedEventTemplate = JSON.parse(eventTemplate);
-
-    //     updateinfo["eventTemplate"] = parsedEventTemplate;
-    //   } catch (error) {
-    //     return next(new ApiError(400, "Invalid JSON for Event Template"));
-    //   }
-    // }
+    if (eventTemplate) {
+      try {
+        const parsedEventTemplate = JSON.parse(eventTemplate);
+        updateinfo["eventTemplate"] = parsedEventTemplate;
+      } catch (error) {
+        return next(new ApiError(400, "Invalid JSON for Event Template"));
+      }
+    }
 
     if (attendieType) {
       try {
