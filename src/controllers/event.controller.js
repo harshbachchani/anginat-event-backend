@@ -10,6 +10,7 @@ import {
 
 const registerEvent = asyncHandler(async (req, res, next) => {
   try {
+    console.log(req.body);
     const imageLocalPath = req.file?.buffer;
     if (!imageLocalPath)
       return next(new ApiError(400, "Cannot get image local path"));
