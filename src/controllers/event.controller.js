@@ -140,6 +140,7 @@ const deleteEvent = asyncHandler(async (req, res, next) => {
 });
 const updateEvent = asyncHandler(async (req, res, next) => {
   try {
+    console.log(req.body);
     const { id } = req.params;
     const event = await prisma.event.findUnique({
       where: { id: parseInt(id) },
@@ -166,6 +167,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       eventTemplate,
       attendieType,
     } = req.body;
+
     const updateinfo = {};
     if (eventName) updateinfo["eventName"] = eventName;
     if (isPaid) updateinfo["isPaid"] = isPaid;
