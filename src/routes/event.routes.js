@@ -11,11 +11,7 @@ import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 router.use(verifyJWT);
-router
-  .route("/:id")
-  .get(getEventDetails)
-  .delete(deleteEvent)
-  .patch(updateEvent);
+router.route("/:id").get(getEventDetails).delete(deleteEvent).post(updateEvent);
 router.route("/").get(getAllCreatedEvents);
 router.route("/register").post(upload.single("image"), registerEvent);
 export default router;
