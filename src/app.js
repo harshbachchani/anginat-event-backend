@@ -20,7 +20,7 @@ app.use(
 
 app.use(
   express.json({
-    limit: "16KB",
+    limit: "64KB",
   })
 );
 app.use(
@@ -31,7 +31,7 @@ app.use(
   })
 );
 
-app.use(express.urlencoded({ extended: true, limit: "16KB" }));
+app.use(express.urlencoded({ extended: true, limit: "64KB" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 app.use(passport.initialize());
