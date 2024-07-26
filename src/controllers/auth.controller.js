@@ -280,8 +280,10 @@ const logoutUser = asyncHandler(async (req, res, next) => {
       where: { id: parseInt(userId) },
       data: { refreshToken: null },
     });
+    console.log(res.cookies);
     res
       .status(200)
+      .clearCookie("connect.sid", cookieOptions)
       .clearCookie("accessToken", cookieOptions)
       .clearCookie("refreshToken", cookieOptions)
       .json(new ApiResponse(200, {}, "User logged out successfully"));
