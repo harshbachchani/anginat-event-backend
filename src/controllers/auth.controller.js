@@ -264,6 +264,44 @@ const changePassword = asyncHandler(async (req, res, next) => {
     return next(new ApiError(500, "Internal Server Error", error));
   }
 });
+
+const logoutUser = asyncHandler(async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    console.log(req.session.googleToken);
+    req.session.destroy((err) => {
+      if (err) {
+        return next(new ApiError(500, "Failed to logout", err));
+      }
+      res.clearCookie("connect.sid");
+      // revokeGoogleToken(token);
+      // Redirect the user
+    });
+    await prisma.admin.update({
+      where: { id: parseInt(userId) },
+      data: { refreshToken: null },
+    });
+    res
+      .status(200)
+      .clearCookie("accessToken", cookieOptions)
+      .clearCookie("refreshToken", cookieOptions)
+      .json(new ApiResponse());
+  } catch (error) {
+    return next(new ApiError(500, "Internal Server Error", error));
+  }
+});
+function revokeGoogleToken(token) {
+  return new Promise((resolve, reject) => {
+    oauth2Client.revokeToken(token, (err, body) => {
+      if (err) {
+        console.error("Failed to revoke token:", err);
+        return reject(err);
+      }
+      console.log("Token revoked:", body);
+      resolve(body);
+    });
+  });
+}
 export {
   registerWithEmail,
   fullRegisteration,
@@ -272,4 +310,5 @@ export {
   forgetPassword,
   verifyResetToken,
   changePassword,
+  logoutUser,
 };
