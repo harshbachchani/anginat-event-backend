@@ -112,9 +112,6 @@ const getAllCreatedEvents = asyncHandler(async (req, res, next) => {
     for (let event of events) {
       event.eventDate = convertDateToIST(event.eventDate);
       event.eventTemplate = JSON.stringify(event.eventTemplate);
-      return next(
-        new ApiError(500, "Error Cannot parse the data to string", error)
-      );
     }
     return res
       .status(200)
