@@ -18,6 +18,8 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
     const { eventId } = req.params;
     if (!eventId) return next(new ApiError(400, "Event Id is required"));
     const { formValues } = req.body;
+    console.log(typeof formValues);
+    console.log(formValues);
     if (!formValues)
       return next(new ApiError(400, "FormValue Field is required"));
     const eventDetail = await prisma.event.findUnique({
@@ -27,29 +29,24 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(400, "Cannot get eventdetails as per given eventId")
       );
-    let parsedFormValues;
-    try {
-      parsedFormValues = JSON.parse(formValues);
-    } catch (error) {
-      return next(new ApiError(400, "Error in parsing JSON for Form Values"));
-    }
-    console.log(parsedFormValues);
+
     const phoneNo =
-      parsedFormValues["phone_input_0A6EEDDB-E0D5-4BC7-8D4B-CF2D4896B786"];
+      formValues["phone_input_0A6EEDDB-E0D5-4BC7-8D4B-CF2D4896B786"];
     const email =
-      parsedFormValues["email_input_A4A11559-34CB-4A95-BB86-E89C8CABE06C"];
+      formValues["email_input_A4A11559-34CB-4A95-BB86-E89C8CABE06C"];
     const userName =
-      parsedFormValues["text_input_103DC733-9828-4C8D-BDD5-E2BCDD96D92A"];
+      formValues["text_input_103DC733-9828-4C8D-BDD5-E2BCDD96D92A"];
     console.log(phoneNo);
     console.log(email);
-    console.log(userName);
+    if (!(userName && email && phoneNo))
+      return next(new ApiResponse(400, "Cannot get required fields"));
     const userDetail = await prisma.eventRegistration.create({
       data: {
         eventId: parseInt(eventId),
         userName,
         phoneNo: parseInt(phoneNo),
         email,
-        formValues: parsedFormValues,
+        formValues: formValues,
         paymentStatus: "PENDING", //this can be modified further
         QR: "url", //url of the qr generated
       },
