@@ -37,10 +37,13 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       formValues["email_input_A4A11559-34CB-4A95-BB86-E89C8CABE06C"];
     const userName =
       formValues["text_input_103DC733-9828-4C8D-BDD5-E2BCDD96D92A"];
-    console.log(phoneNo);
-    console.log(email);
+    console.log(typeof phoneNo);
+    console.log(typeof email);
+    console.log(typeof userName);
+
     if (!(userName && email && phoneNo))
       return next(new ApiResponse(400, "Cannot get required fields"));
+    console.log("Hii");
     const userDetail = await prisma.eventRegistration.create({
       data: {
         eventId: parseInt(eventId),
