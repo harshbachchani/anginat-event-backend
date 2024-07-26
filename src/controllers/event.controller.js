@@ -2,7 +2,6 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import prisma from "../db/config.js";
-import { convertDateToIST } from "../services/dateconversion.service.js";
 import {
   deletefromCloudinary,
   uploadOnCloudinary,
@@ -68,14 +67,14 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     const image = await uploadOnCloudinary(imageLocalPath);
     if (!image)
       return next(new ApiError(501, "Error on uploading image on clodinary"));
-    const eventbyDate = new Date(eventDate);
+
     const event = await prisma.event.create({
       data: {
         eventName,
         city,
         isPaid: Boolean(isPaid),
         address,
-        eventDate: eventbyDate,
+        eventDate: new Date(eventDate),
         userJourney: parsedUserJourney,
         eventTemplate: parsedEventTemplate,
         attendieType: parsedAttendieType,
@@ -85,7 +84,6 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     });
 
     if (!event) return next(new ApiError(501, "Error in creating event"));
-    event.eventDate = convertDateToIST(event.eventDate);
     try {
       event.eventTemplate = JSON.stringify(event.eventTemplate);
     } catch (error) {
@@ -111,7 +109,6 @@ const getAllCreatedEvents = asyncHandler(async (req, res, next) => {
     });
     if (!events) return next(new ApiError(500, "Error in fetching events "));
     for (let event of events) {
-      event.eventDate = convertDateToIST(event.eventDate);
       event.eventTemplate = JSON.stringify(event.eventTemplate);
     }
     return res
@@ -129,7 +126,6 @@ const getEventDetails = asyncHandler(async (req, res, next) => {
     });
     if (!event)
       return next(new ApiError(400, "Cannot get event with provided Id"));
-    event.eventDate = convertDateToIST(event.eventDate);
     try {
       event.eventTemplate = JSON.stringify(event.eventTemplate);
     } catch (error) {
@@ -240,7 +236,6 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       where: { id: parseInt(id) },
       data: updateinfo,
     });
-    updatedevent.eventDate = convertDateToIST(updatedevent.eventDate);
     try {
       updatedevent.eventTemplate = JSON.stringify(updatedevent.eventTemplate);
     } catch (error) {

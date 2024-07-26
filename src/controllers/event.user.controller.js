@@ -110,7 +110,6 @@ const getAllEvents = asyncHandler(async (req, res, next) => {
         new ApiError(500, "Internal Server Error while fetching events")
       );
     for (let event of events) {
-      event.eventDate = convertDateToIST(event.eventDate);
       event.eventTemplate = JSON.stringify(event.eventTemplate);
     }
     return res
@@ -137,7 +136,6 @@ const getEventById = asyncHandler(async (req, res, next) => {
       );
     }
     if (!event) return next(new ApiError(404, "No such event exist"));
-    event.eventDate = convertDateToIST(event.eventDate);
     return res
       .status(200)
       .json(new ApiResponse(200, event, "Event fetched successfully"));
