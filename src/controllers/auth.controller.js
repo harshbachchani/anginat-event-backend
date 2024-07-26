@@ -267,16 +267,15 @@ const changePassword = asyncHandler(async (req, res, next) => {
 
 const logoutUser = asyncHandler(async (req, res, next) => {
   try {
+    console.log("Hello");
     const userId = req.user?.id;
-    console.log(req.session.googleToken);
-    req.session.destroy((err) => {
-      if (err) {
-        return next(new ApiError(500, "Failed to logout", err));
-      }
-      res.clearCookie("connect.sid");
-      // revokeGoogleToken(token);
-      // Redirect the user
-    });
+    // req.session.destroy((err) => {
+    //   if (err) {
+    //     return next(new ApiError(500, "Failed to logout", err));
+    //   }
+    //   res.clearCookie("connect.sid");
+    //   // revokeGoogleToken(token);
+    // });
     await prisma.admin.update({
       where: { id: parseInt(userId) },
       data: { refreshToken: null },
@@ -285,7 +284,7 @@ const logoutUser = asyncHandler(async (req, res, next) => {
       .status(200)
       .clearCookie("accessToken", cookieOptions)
       .clearCookie("refreshToken", cookieOptions)
-      .json(new ApiResponse());
+      .json(new ApiResponse(200, {}, "User logged out successfully"));
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
