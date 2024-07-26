@@ -40,19 +40,21 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       parsedFormValues["email_input_A4A11559-34CB-4A95-BB86-E89C8CABE06C"];
     const userName =
       parsedFormValues["text_input_103DC733-9828-4C8D-BDD5-E2BCDD96D92A"];
-
+    console.log(phoneNo);
+    console.log(email);
+    console.log(userName);
     const userDetail = await prisma.eventRegistration.create({
       data: {
         eventId: parseInt(eventId),
         userName,
-        phoneNo,
+        phoneNo: parseInt(phoneNo),
         email,
         formValues: parsedFormValues,
         paymentStatus: "PENDING", //this can be modified further
         QR: "url", //url of the qr generated
       },
     });
-
+    console.log(userDetail);
     if (!userDetail)
       return next(
         new ApiError(500, "Server Error while registering user to event")
