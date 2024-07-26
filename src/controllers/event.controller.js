@@ -68,13 +68,14 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     const image = await uploadOnCloudinary(imageLocalPath);
     if (!image)
       return next(new ApiError(501, "Error on uploading image on clodinary"));
+    const eventbyDate = new Date(eventDate);
     const event = await prisma.event.create({
       data: {
         eventName,
         city,
         isPaid: Boolean(isPaid),
         address,
-        eventDate: new Date(eventDate),
+        eventDate: eventbyDate,
         userJourney: parsedUserJourney,
         eventTemplate: parsedEventTemplate,
         attendieType: parsedAttendieType,
@@ -224,7 +225,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
         return next(new ApiError(400, "Invalid JSON for Attendie Type", error));
       }
     }
-    if (eventDate) updateinfo["eventDate"] = new Date(eventDate);
+
     if (Object.keys(updateinfo).length === 0)
       return next(new ApiError(400, "Give atleast one of the parameters"));
     const previouseventpath = event.image;
