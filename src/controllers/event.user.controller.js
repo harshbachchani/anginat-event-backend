@@ -15,6 +15,7 @@ import {
 
 const userEventRegistration = asyncHandler(async (req, res, next) => {
   try {
+    console.log(req.body);
     const { eventId } = req.params;
     if (!eventId) return next(new ApiError(400, "Event Id is required"));
     const { formValues } = req.body;
