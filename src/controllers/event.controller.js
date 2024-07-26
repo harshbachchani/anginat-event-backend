@@ -198,6 +198,12 @@ const updateEvent = asyncHandler(async (req, res, next) => {
     if (isPaid) updateinfo["isPaid"] = Boolean(isPaid);
     if (address) updateinfo["address"] = address;
     if (city) updateinfo["city"] = city;
+    if (eventDate) {
+      updateinfo["eventDate"] = new Date(eventDate);
+      if (updateinfo.eventDate > new Date()) updateinfo["status"] = "ACTIVE";
+      console.log("status updated");
+    }
+
     if (userJourney) {
       try {
         const parsedUserJourney = JSON.parse(userJourney);
