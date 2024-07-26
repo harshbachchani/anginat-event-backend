@@ -16,7 +16,6 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
     const user = await prisma.admin.findUnique({
       where: { id: decodedtoken?.id },
     });
-
     if (!user) return next(new ApiError(401, "Invalid Access Token"));
 
     req.user = user;

@@ -212,6 +212,8 @@ const updateEvent = asyncHandler(async (req, res, next) => {
     return next(new ApiError(500, "Internal Server Error", error));
   }
 });
+
+const getAllRegsiteredUser = asyncHandler(async (req, res, next) => {});
 export {
   registerEvent,
   getEventDetails,
