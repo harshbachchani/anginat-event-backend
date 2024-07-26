@@ -6,6 +6,7 @@ import {
   getEventDetails,
   registerEvent,
   updateEvent,
+  getAllEventRegsiteredUser,
 } from "../controllers/event.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
@@ -18,5 +19,5 @@ router
   .delete(deleteEvent)
   .put(upload.single("image"), updateEvent);
 router.route("/").get(getAllCreatedEvents);
-
+router.route("/users/:eventId").get(getAllEventRegsiteredUser);
 export default router;

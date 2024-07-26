@@ -85,6 +85,13 @@ const registerEvent = asyncHandler(async (req, res, next) => {
 
     if (!event) return next(new ApiError(501, "Error in creating event"));
     event.eventDate = convertDateToIST(event.eventDate);
+    try {
+      event.eventTemplate = JSON.stringify(event.eventTemplate);
+    } catch (error) {
+      return next(
+        new ApiError(500, "Error Cannot parse the data to string", error)
+      );
+    }
     return res
       .status(200)
       .json(new ApiResponse(200, event, "Event Created Successfully"));
@@ -104,6 +111,10 @@ const getAllCreatedEvents = asyncHandler(async (req, res, next) => {
     if (!events) return next(new ApiError(500, "Error in fetching events "));
     for (let event of events) {
       event.eventDate = convertDateToIST(event.eventDate);
+      event.eventTemplate = JSON.stringify(event.eventTemplate);
+      return next(
+        new ApiError(500, "Error Cannot parse the data to string", error)
+      );
     }
     return res
       .status(200)
@@ -121,6 +132,13 @@ const getEventDetails = asyncHandler(async (req, res, next) => {
     if (!event)
       return next(new ApiError(400, "Cannot get event with provided Id"));
     event.eventDate = convertDateToIST(event.eventDate);
+    try {
+      event.eventTemplate = JSON.stringify(event.eventTemplate);
+    } catch (error) {
+      return next(
+        new ApiError(500, "Error Cannot parse the data to string", error)
+      );
+    }
     return res
       .status(200)
       .json(new ApiResponse(200, event, "Event details fetched successfully"));
@@ -219,6 +237,13 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       data: updateinfo,
     });
     updatedevent.eventDate = convertDateToIST(updatedevent.eventDate);
+    try {
+      updatedevent.eventTemplate = JSON.stringify(updatedevent.eventTemplate);
+    } catch (error) {
+      return next(
+        new ApiError(500, "Error Cannot parse the data to string", error)
+      );
+    }
     if (imagefile !== "") {
       await deletefromCloudinary([previouseventpath]);
     }
@@ -231,11 +256,38 @@ const updateEvent = asyncHandler(async (req, res, next) => {
   }
 });
 
-const getAllRegsiteredUser = asyncHandler(async (req, res, next) => {});
+const getAllEventRegsiteredUser = asyncHandler(async (req, res, next) => {
+  try {
+    const { eventId } = req.params;
+    const event = await prisma.event.findUnique({
+      where: { id: parseInt(eventId) },
+    });
+    if (!event) return next(new ApiError(400, "No such event is found"));
+    const eventRegisteredUsers = await prisma.eventRegistration.findMany({
+      where: { eventId: parseInt(eventId) },
+      select: {
+        userName: true,
+        phoneNo: true,
+        email: true,
+      },
+    });
+    if (!eventRegisteredUsers)
+      return next(new ApiResponse(501, "Unable to get users"));
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, eventRegisteredUsers, "Users fetched successfully")
+      );
+  } catch (error) {
+    return next(new ApiError(500, "Internal Server Error"));
+  }
+});
 export {
   registerEvent,
   getEventDetails,
   deleteEvent,
   updateEvent,
+  getAllEventRegsiteredUser,
   getAllCreatedEvents,
 };

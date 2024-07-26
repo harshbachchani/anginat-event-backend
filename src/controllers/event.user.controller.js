@@ -111,6 +111,7 @@ const getAllEvents = asyncHandler(async (req, res, next) => {
       );
     for (let event of events) {
       event.eventDate = convertDateToIST(event.eventDate);
+      event.eventTemplate = JSON.stringify(event.eventTemplate);
     }
     return res
       .status(200)
@@ -127,6 +128,14 @@ const getEventById = asyncHandler(async (req, res, next) => {
     const event = await prisma.event.findUnique({
       where: { id: parseInt(eventId), status: "ACTIVE" },
     });
+
+    try {
+      event.eventTemplate = JSON.stringify(event.eventTemplate);
+    } catch (error) {
+      return next(
+        new ApiError(500, "Error Cannot parse the data to string", error)
+      );
+    }
     if (!event) return next(new ApiError(404, "No such event exist"));
     event.eventDate = convertDateToIST(event.eventDate);
     return res
