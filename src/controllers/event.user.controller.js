@@ -43,7 +43,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
     }
     const userDetail = await prisma.eventRegistration.create({
       data: {
-        event: { connect: { id: parseInt(eventId) } },
+        eventId: parseInt(eventId),
         profile: profile.url,
         location,
         userName,
@@ -63,7 +63,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
         new ApiError(400, "Error in generating QR code for user ", result.error)
       );
     const user = await prisma.eventRegistration.update({
-      where: { id: userDetail.id },
+      where: { id: parseInt(userDetail.id) },
       data: { QR: result.data },
     });
 
@@ -79,15 +79,23 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
         )
       );
     }
-    console.log(validatePhone.data);
+
     //this would be user's phone no
-    const sendmsg = await sendWhatsappMsg("9057177525");
+    const whatsappData = {
+      QR: result.data,
+      userName: user.userName,
+      name: eventDetail.eventName,
+      date: eventDetail.eventDate,
+      address: eventDetail.address,
+      city: eventDetail.city,
+    };
+    const sendmsg = await sendWhatsappMsg(whatsappData, "9057177525");
     if (!sendmsg.success) {
       return next(
         new ApiError(500, "Error sending whatsapp message", sendmsg.error)
       );
     }
-    console.log(sendmsg.data);
+
     return res
       .status(200)
       .json(

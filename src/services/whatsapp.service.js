@@ -1,4 +1,5 @@
 import axios from "axios";
+import { formatDateTime } from "./dateconversion.service.js";
 
 const registerPhoneNo = async (name, phoneNumber) => {
   try {
@@ -22,19 +23,29 @@ const registerPhoneNo = async (name, phoneNumber) => {
   }
 };
 
-const sendWhatsappMsg = async (phoneNumber) => {
+const sendWhatsappMsg = async (eventData, phoneNumber) => {
   try {
     const url = "https://api.interakt.ai/v1/public/message/";
-
+    const result = formatDateTime(eventData.date);
+    const formatDate = result.formattedDate;
+    const formatTime = result.formattedTime;
     const data = {
       countryCode: "+91",
       phoneNumber,
       callbackData: "some text here",
       type: "Template",
       template: {
-        name: "browse_catalog_on_whatsapp",
+        name: "agninat_event",
         languageCode: "en",
-        bodyValues: ["body_variable_value_1"], //the variable which I had to update
+        headerValues: [eventData.QR],
+        bodyValues: [
+          eventData.userName,
+          eventData.name,
+          formatDate,
+          formatTime,
+          eventData.address,
+          eventData.city,
+        ],
       },
     };
     const response = await axios.post(url, data, {
