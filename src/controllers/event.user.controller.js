@@ -17,12 +17,9 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
   try {
     const { eventId } = req.params;
     if (!eventId) return next(new ApiError(400, "Event Id is required"));
-    const profilelocalpath = req.file?.buffer;
-    if (!profilelocalpath)
-      return next(new ApiError(400, "Cannot get profile local path"));
-    const { userName, formValues, location } = req.body;
-    if (!(userName && formValues && location))
-      return next(new ApiError(400, "All fields are required"));
+    const { formValues } = req.body;
+    if (!formValues)
+      return next(new ApiError(400, "FormValue Field is required"));
     const eventDetail = await prisma.event.findUnique({
       where: { id: parseInt(eventId) },
     });
@@ -30,23 +27,26 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(400, "Cannot get eventdetails as per given eventId")
       );
-    const profile = await uploadOnCloudinary(profilelocalpath);
-    if (!profile)
-      return next(
-        new ApiError(503, "Server Error while uploading image on clodinary")
-      );
     let parsedFormValues;
     try {
       parsedFormValues = JSON.parse(formValues);
     } catch (error) {
       return next(new ApiError(400, "Error in parsing JSON for Form Values"));
     }
+    console.log(parsedFormValues);
+    const phoneNo =
+      parsedFormValues["phone_input_0A6EEDDB-E0D5-4BC7-8D4B-CF2D4896B786"];
+    const email =
+      parsedFormValues["email_input_A4A11559-34CB-4A95-BB86-E89C8CABE06C"];
+    const userName =
+      parsedFormValues["text_input_103DC733-9828-4C8D-BDD5-E2BCDD96D92A"];
+
     const userDetail = await prisma.eventRegistration.create({
       data: {
         eventId: parseInt(eventId),
-        profile: profile.url,
-        location,
         userName,
+        phoneNo,
+        email,
         formValues: parsedFormValues,
         paymentStatus: "PENDING", //this can be modified further
         QR: "url", //url of the qr generated
@@ -68,7 +68,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
     });
 
     //the user's phone no should be paste there
-    const validatePhone = await registerPhoneNo(userName, "9057177525");
+    const validatePhone = await registerPhoneNo(userName, phoneNo);
 
     if (!validatePhone.success) {
       return next(
@@ -89,7 +89,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       address: eventDetail.address,
       city: eventDetail.city,
     };
-    const sendmsg = await sendWhatsappMsg(whatsappData, "9057177525");
+    const sendmsg = await sendWhatsappMsg(whatsappData, phoneNo);
     if (!sendmsg.success) {
       return next(
         new ApiError(500, "Error sending whatsapp message", sendmsg.error)

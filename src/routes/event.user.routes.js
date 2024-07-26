@@ -9,9 +9,6 @@ import {
 const router = Router();
 
 router.route("/").get(getAllEvents);
-router
-  .route("/:eventId")
-  .get(getEventById)
-  .post(upload.single("profile"), userEventRegistration);
+router.route("/:eventId").get(getEventById).post(userEventRegistration);
 
 export default router;

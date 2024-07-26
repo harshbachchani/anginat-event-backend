@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import prisma from "./db/config.js";
 import passport from "passport";
+import path from "path";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 const app = express();

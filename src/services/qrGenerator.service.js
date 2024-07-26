@@ -28,8 +28,8 @@ async function generateQRForUser(user, event) {
       eventCity: event.city,
       eventAddress: event.address,
       userName: user.userName,
-      userProfile: user.profile,
-      userLocation: user.location,
+      userPhoneNo: user.phoneNo,
+      userEmail: user.email,
       registrationDate: user.registrationDate,
     };
     const result = await generateQRCode(data);
