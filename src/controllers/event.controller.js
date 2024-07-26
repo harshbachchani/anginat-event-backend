@@ -45,11 +45,25 @@ const registerEvent = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(400, "Event date should be greater then today'date")
       );
-    const parsedEventTemplate = JSON.parse(eventTemplate);
 
-    const parsedUserJourney = JSON.parse(userJourney);
-
-    const parsedAttendieType = JSON.parse(attendieType);
+    let parsedEventTemplate;
+    try {
+      parsedEventTemplate = JSON.parse(eventTemplate);
+    } catch (error) {
+      return next(new ApiError(400, "Invalid JSON for Event Template", error));
+    }
+    let parsedUserJourney;
+    try {
+      parsedUserJourney = JSON.parse(userJourney);
+    } catch (error) {
+      return next(new ApiError(400, "Invalid JSON for User Journey", error));
+    }
+    let parsedAttendieType;
+    try {
+      parsedAttendieType = JSON.parse(attendieType);
+    } catch (error) {
+      return next(new ApiError(400, "Invalid JSON for Attendie Type", error));
+    }
 
     const image = await uploadOnCloudinary(imageLocalPath);
     if (!image)
@@ -172,14 +186,18 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       try {
         const parsedUserJourney = JSON.parse(userJourney);
         updateinfo["userJourney"] = parsedUserJourney;
-      } catch (err) {}
+      } catch (err) {
+        return next(new ApiError(400, "Invalid JSON for User Journey", err));
+      }
     }
     if (eventTemplate) {
       try {
         const parsedEventTemplate = JSON.parse(eventTemplate);
         updateinfo["eventTemplate"] = parsedEventTemplate;
       } catch (error) {
-        return next(new ApiError(400, "Invalid JSON for Event Template"));
+        return next(
+          new ApiError(400, "Invalid JSON for Event Template", error)
+        );
       }
     }
 
@@ -188,7 +206,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
         const parsedAttendieType = JSON.parse(attendieType);
         updateinfo["attendieType"] = parsedAttendieType;
       } catch (error) {
-        return next(new ApiError(400, "Invalid JSON for Attendie Type"));
+        return next(new ApiError(400, "Invalid JSON for Attendie Type", error));
       }
     }
     if (eventDate) updateinfo["eventDate"] = new Date(eventDate);
