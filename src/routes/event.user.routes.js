@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { upload } from "../middlewares/multer.middleware.js";
 import {
   getAllEvents,
   userEventRegistration,
@@ -9,6 +8,10 @@ import {
 const router = Router();
 
 router.route("/").get(getAllEvents);
-router.route("/:eventId").get(getEventById).post(userEventRegistration);
+router
+  .route("/:eventId")
+  .get(getEventById)
+  .post(userEventRegistration)
+  .put(userEventRegistration);
 
 export default router;
