@@ -8,7 +8,7 @@ CREATE TYPE "EventStatus" AS ENUM ('ACTIVE', 'COMPLETED');
 CREATE TYPE "RegistrationMode" AS ENUM ('ONLINE', 'ONSITE');
 
 -- CreateEnum
-CREATE TYPE "PaymentStatus" AS ENUM ('COMPLETED', 'FAILED', 'PENDING');
+CREATE TYPE "PaymentStatus" AS ENUM ('COMPLETED', 'FAILED', 'PENDING', 'NONE');
 
 -- CreateTable
 CREATE TABLE "Admin" (
@@ -50,16 +50,15 @@ CREATE TABLE "Event" (
 CREATE TABLE "EventRegistration" (
     "id" SERIAL NOT NULL,
     "eventId" INTEGER NOT NULL,
-    "userName" TEXT NOT NULL,
-    "phoneNo" INTEGER NOT NULL,
-    "email" TEXT NOT NULL,
+    "userName" TEXT,
+    "phoneNo" INTEGER,
+    "email" TEXT,
     "formValues" JSONB NOT NULL,
-    "profile" TEXT NOT NULL,
     "modeOfRegistration" "RegistrationMode" NOT NULL DEFAULT 'ONLINE',
-    "location" TEXT NOT NULL,
-    "paymentStatus" "PaymentStatus" NOT NULL,
+    "location" TEXT,
+    "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'NONE',
     "registrationDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "QR" TEXT NOT NULL,
+    "QR" TEXT,
 
     CONSTRAINT "EventRegistration_pkey" PRIMARY KEY ("id")
 );
