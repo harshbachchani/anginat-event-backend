@@ -36,6 +36,16 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
 
     if (!(userName && email && phoneNo))
       return next(new ApiResponse(400, "Cannot get required fields"));
+    const existerUser = await prisma.eventRegistration.findMany({
+      where: {
+        eventId: eventDetail.id,
+        phoneNo,
+        email,
+      },
+    });
+    if (existerUser || existerUser.length !== 0) {
+      return next(new ApiError(400, "User Already registered in the event"));
+    }
     const userDetail = await prisma.eventRegistration.create({
       data: {
         eventId: eventDetail.id,
@@ -142,6 +152,29 @@ const getEventById = asyncHandler(async (req, res, next) => {
       .json(new ApiResponse(200, event, "Event fetched successfully"));
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
+  }
+});
+
+const markUserJourney = asyncHandler(async (req, res, next) => {
+  try {
+    const { action, userId, eventId } = req.body;
+    if (!(action && userId && eventId))
+      return next(new ApiError(400, "All UserJourney fields are required"));
+    const data = await prisma.userJourney.findMany({
+      where: { eventId, userId, action },
+    });
+    if (data || data.length !== 0)
+      return next(new ApiError(401, `${action} Already Marked True`));
+    const userJourney = await prisma.userJourney.create({
+      data: {
+        userId: parseInt(userId),
+        eventId: parseInt(eventId),
+        action,
+        value: true,
+      },
+    });
+  } catch (err) {
+    return next(new ApiError(500, "Internal Server Error", err));
   }
 });
 export { userEventRegistration, getAllEvents, getEventById };

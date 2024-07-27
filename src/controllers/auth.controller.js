@@ -330,18 +330,18 @@ const logoutUser = asyncHandler(async (req, res, next) => {
     return next(new ApiError(500, "Internal Server Error", error));
   }
 });
-function revokeGoogleToken(token) {
-  return new Promise((resolve, reject) => {
-    oauth2Client.revokeToken(token, (err, body) => {
-      if (err) {
-        console.error("Failed to revoke token:", err);
-        return reject(err);
-      }
-      console.log("Token revoked:", body);
-      resolve(body);
-    });
-  });
-}
+// function revokeGoogleToken(token) {
+//   return new Promise((resolve, reject) => {
+//     oauth2Client.revokeToken(token, (err, body) => {
+//       if (err) {
+//         console.error("Failed to revoke token:", err);
+//         return reject(err);
+//       }
+//       console.log("Token revoked:", body);
+//       resolve(body);
+//     });
+//   });
+// }
 export {
   registerWithEmail,
   fullRegisteration,
