@@ -38,11 +38,11 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       return next(new ApiResponse(400, "Cannot get required fields"));
     const userDetail = await prisma.eventRegistration.create({
       data: {
-        eventId: parseInt(eventId),
-        userName: "Harsh Bachchani",
-        phoneNo: "9057177525",
-        email: "harsh@gmail.com",
-        formValues: formValues,
+        eventId: eventDetail.id,
+        userName: userName,
+        phoneNo: phoneNo,
+        email: email,
+        formValues: {},
       },
     });
     console.log(userDetail);
