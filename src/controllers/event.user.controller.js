@@ -38,9 +38,11 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       return next(new ApiResponse(400, "Cannot get required fields"));
     const existerUser = await prisma.eventRegistration.findMany({
       where: {
-        eventId: eventDetail.id,
-        phoneNo,
-        email,
+        AND: {
+          eventId: eventDetail.id,
+          phoneNo,
+          email,
+        },
       },
     });
     if (existerUser || existerUser.length !== 0) {
