@@ -13,11 +13,11 @@ passport.use(
     },
     async (req, accessToken, refreshToken, profile, done) => {
       try {
-        let user = await prisma.user.findUnique({
+        let user = await prisma.admin.findUnique({
           where: { googleId: profile.id },
         });
         if (!user) {
-          user = await prisma.user.create({
+          user = await prisma.admin.create({
             data: {
               googleId: profile.id,
               email: profile.emails[0].value,
@@ -38,7 +38,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id } });
+    const user = await prisma.admin.findUnique({ where: { id } });
     done(null, user);
   } catch (err) {
     done(err, null);
