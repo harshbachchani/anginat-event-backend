@@ -305,7 +305,33 @@ const changePassword = asyncHandler(async (req, res, next) => {
     return next(new ApiError(500, "Internal Server Error", error));
   }
 });
-
+const googleCheck = asyncHandler(async (req, res) => {
+  try {
+    const user = req.user;
+    const existeduser = await prisma.admin.findFirst({
+      where: {
+        AND: {
+          companyName: user.companyName,
+          phoneNo: user.phoneNo,
+        },
+      },
+    });
+    if (!existeduser) {
+      const accessToken = await generateAccessToken(existeduser);
+      const refreshToken = await generateRefreshToken(existeduser);
+      res.cookie("accessToken", accessToken, cookieOptions);
+      res.cookie("refreshToken", refreshToken, cookieOptions);
+      res.redirect("https://event-frontend-omega.vercel.app/dashboard");
+    } else {
+      res.redirect(
+        `https://event-frontend-omega.vercel.app/signup1?id=${encodeURIComponent(user.id)}`
+      );
+    }
+  } catch (err) {
+    console.log(err);
+    res.redirect("https://event-frontend-omega.vercel.app/signup");
+  }
+});
 const logoutUser = asyncHandler(async (req, res, next) => {
   try {
     const userId = req.user?.id;

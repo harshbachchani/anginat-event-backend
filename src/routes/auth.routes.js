@@ -8,6 +8,7 @@ import {
   changePassword,
   verifyResetToken,
   logoutUser,
+  googleCheck,
   checkTokenValidity,
 } from "../controllers/auth.controller.js";
 import passport from "passport";
@@ -33,11 +34,8 @@ router.get(
   "/google/callback",
   passport.authenticate("google", {
     failureRedirect: "https://event-frontend-omega.vercel.app/signup",
-    successRedirect: "https://event-frontend-omega.vercel.app/signup1",
   }),
-  (req, res) => {
-    res.send("Google Authenticated successfully");
-  }
+  googleCheck
 );
 
 router
