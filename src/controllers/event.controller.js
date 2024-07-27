@@ -265,9 +265,12 @@ const getAllEventRegsiteredUser = asyncHandler(async (req, res, next) => {
     const eventRegisteredUsers = await prisma.eventRegistration.findMany({
       where: { eventId: parseInt(eventId) },
       select: {
+        id: true,
         userName: true,
         phoneNo: true,
         email: true,
+        modeOfRegistration: true,
+        formValues: true,
       },
     });
     if (!eventRegisteredUsers)
