@@ -15,6 +15,7 @@ import {
 
 const userEventRegistration = asyncHandler(async (req, res, next) => {
   try {
+    console.log(req.body);
     const { eventId } = req.params;
     if (!eventId) return next(new ApiError(400, "Event Id is required"));
     const { formValues } = req.body;
@@ -27,6 +28,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(400, "Cannot get eventdetails as per given eventId")
       );
+
     const phoneNo =
       formValues["phone_input_0A6EEDDB-E0D5-4BC7-8D4B-CF2D4896B786"];
     const email =
@@ -35,15 +37,24 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       formValues["text_input_103DC733-9828-4C8D-BDD5-E2BCDD96D92A"];
     if (!(userName && email && phoneNo))
       return next(new ApiResponse(400, "Cannot get required fields"));
+    console.log(typeof formValues);
+    console.log(formValues);
+    console.log(userName);
+    console.log(phoneNo);
+    console.log(email);
+    console.log(typeof userName);
+    console.log(typeof phoneNo);
+    console.log(typeof email);
     const userDetail = await prisma.eventRegistration.create({
       data: {
         eventId: parseInt(eventId),
         userName,
-        phoneNo: parseInt(phoneNo),
+        phoneNo,
         email,
         formValues: formValues,
       },
     });
+    console.log(userDetail);
     if (!userDetail)
       return next(
         new ApiError(500, "Server Error while registering user to event")
@@ -57,7 +68,9 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       where: { id: parseInt(userDetail.id) },
       data: { QR: result.data },
     });
-    const validatePhone = await registerPhoneNo(userName, phoneNo);
+
+    //the user's phone no should be paste there
+    const validatePhone = await registerPhoneNo(userName, parseInt(phoneNo));
 
     if (!validatePhone.success) {
       return next(
@@ -78,7 +91,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       address: eventDetail.address,
       city: eventDetail.city,
     };
-    const sendmsg = await sendWhatsappMsg(whatsappData, phoneNo);
+    const sendmsg = await sendWhatsappMsg(whatsappData, parseInt(phoneNo));
     if (!sendmsg.success) {
       return next(
         new ApiError(500, "Error sending whatsapp message", sendmsg.error)
