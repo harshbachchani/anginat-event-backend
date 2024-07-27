@@ -16,11 +16,8 @@ import {
 const userEventRegistration = asyncHandler(async (req, res, next) => {
   try {
     const { eventId } = req.params;
-    console.log(eventId);
-    console.log(typeof eventId);
-    eventId = 1;
     if (!eventId) return next(new ApiError(400, "Event Id is required"));
-    let { formValues } = req.body;
+    const { formValues } = req.body;
     if (!formValues)
       return next(new ApiError(400, "FormValue Field is required"));
     const eventDetail = await prisma.event.findUnique({
@@ -41,10 +38,10 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       return next(new ApiResponse(400, "Cannot get required fields"));
     const userDetail = await prisma.eventRegistration.create({
       data: {
-        eventId: 1,
-        userName,
-        phoneNo,
-        email,
+        eventId: parseInt(eventId),
+        userName: "Harsh Bachchani",
+        phoneNo: "9057177525",
+        email: "harsh@gmail.com",
         formValues: formValues,
       },
     });
