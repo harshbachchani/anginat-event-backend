@@ -51,7 +51,7 @@ CREATE TABLE "EventRegistration" (
     "id" SERIAL NOT NULL,
     "eventId" INTEGER NOT NULL,
     "userName" TEXT,
-    "phoneNo" INTEGER,
+    "phoneNo" TEXT,
     "email" TEXT,
     "formValues" JSONB NOT NULL,
     "modeOfRegistration" "RegistrationMode" NOT NULL DEFAULT 'ONLINE',
