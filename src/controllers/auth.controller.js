@@ -378,4 +378,5 @@ export {
   checkTokenValidity,
   changePassword,
   logoutUser,
+  googleCheck,
 };
