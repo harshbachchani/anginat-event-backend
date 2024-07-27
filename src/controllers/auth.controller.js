@@ -321,9 +321,9 @@ const googleCheck = asyncHandler(async (req, res) => {
       const refreshToken = await generateRefreshToken(existeduser);
       res.cookie("accessToken", accessToken, cookieOptions);
       res.cookie("refreshToken", refreshToken, cookieOptions);
-      res.redirect("https://event-frontend-omega.vercel.app/dashboard");
+      return res.redirect("https://event-frontend-omega.vercel.app/dashboard");
     } else {
-      res.redirect(
+      return res.redirect(
         `https://event-frontend-omega.vercel.app/signup1?id=${encodeURIComponent(user.id)}`
       );
     }
