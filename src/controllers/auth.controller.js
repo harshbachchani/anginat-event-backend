@@ -308,12 +308,10 @@ const changePassword = asyncHandler(async (req, res, next) => {
 const googleCheck = asyncHandler(async (req, res) => {
   try {
     const user = req.user;
+    console.log(user);
     const existeduser = await prisma.admin.findFirst({
       where: {
-        AND: {
-          companyName: user.companyName,
-          phoneNo: user.phoneNo,
-        },
+        phoneNo: user.phoneNo,
       },
     });
     if (!existeduser) {
