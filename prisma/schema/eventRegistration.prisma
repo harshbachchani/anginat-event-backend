@@ -14,7 +14,7 @@ model EventRegistration {
     id                 Int              @id @default(autoincrement())
     eventId            Int
     userName           String?
-    phoneNo            Int?
+    phoneNo            BigInt?
     email              String?
     formValues         Json
     modeOfRegistration RegistrationMode @default(ONLINE)

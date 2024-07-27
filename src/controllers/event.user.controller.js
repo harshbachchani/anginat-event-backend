@@ -17,7 +17,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
   try {
     const { eventId } = req.params;
     if (!eventId) return next(new ApiError(400, "Event Id is required"));
-    let { formValues } = req.body;
+    const { formValues } = req.body;
     if (!formValues)
       return next(new ApiError(400, "FormValue Field is required"));
     const eventDetail = await prisma.event.findUnique({
@@ -27,11 +27,6 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(400, "Cannot get eventdetails as per given eventId")
       );
-    formValues = {
-      "text_input_103DC733-9828-4C8D-BDD5-E2BCDD96D92A": "Khushal Hirani",
-      "phone_input_0A6EEDDB-E0D5-4BC7-8D4B-CF2D4896B786": "9521372015",
-      "email_input_A4A11559-34CB-4A95-BB86-E89C8CABE06C": "khu@gmail.com",
-    };
     const phoneNo =
       formValues["phone_input_0A6EEDDB-E0D5-4BC7-8D4B-CF2D4896B786"];
     const email =
@@ -49,7 +44,6 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
         formValues: formValues,
       },
     });
-    console.log(userDetail);
     if (!userDetail)
       return next(
         new ApiError(500, "Server Error while registering user to event")
@@ -63,8 +57,6 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       where: { id: parseInt(userDetail.id) },
       data: { QR: result.data },
     });
-
-    //the user's phone no should be paste there
     const validatePhone = await registerPhoneNo(userName, phoneNo);
 
     if (!validatePhone.success) {
