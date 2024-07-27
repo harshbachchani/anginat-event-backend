@@ -232,6 +232,47 @@ const verifyResetToken = asyncHandler(async (req, res, next) => {
   }
 });
 
+const checkTokenValidity = asyncHandler(async (req, res, next) => {
+  try {
+    const accessToken =
+      req.cookies?.accessToken ||
+      req.header("Authorization")?.replace("Bearer ", "");
+    const refreshToken = req.cookies?.refreshToken;
+    if (!(accessToken || refreshToken))
+      return next(new ApiError(401, "Unauthorized request"));
+    const decodedaccesstoken = jwt.verify(
+      accessToken,
+      process.env.ACCESS_TOKEN_SECRET
+    );
+    if (!decodedaccesstoken) {
+      const decodedrefreshtoken = jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+      );
+      if (!decodedrefreshtoken)
+        return next(new ApiError(401, "Tokens are expired please login again"));
+      const userx = await prisma.admin.findUnique({
+        where: { id: decodedaccesstoken?.id },
+      });
+      if (!userx) return next(new ApiError(401, "Invalid refresh Token"));
+      const newaccessToken = await generateAccessToken(userx);
+      res.cookie("accessToken", newaccessToken, cookieOptions);
+      res.cookie("refreshToken", refreshToken, cookieOptions);
+      return res
+        .status(201)
+        .json(new ApiResponse(200, {}, "User Verified Successfully"));
+    }
+    const user = await prisma.admin.findUnique({
+      where: { id: decodedaccesstoken?.id },
+    });
+    if (!user) return next(new ApiError(401, "Invalid Access Token"));
+    return res
+      .status(201)
+      .json(new ApiResponse(200, {}, "User Verified Successfully"));
+  } catch (err) {
+    return next(new ApiError(500, "Internal Server Error", err));
+  }
+});
 const changePassword = asyncHandler(async (req, res, next) => {
   try {
     const { password } = req.body;
@@ -267,7 +308,6 @@ const changePassword = asyncHandler(async (req, res, next) => {
 
 const logoutUser = asyncHandler(async (req, res, next) => {
   try {
-    console.log("Hello");
     const userId = req.user?.id;
     // req.session.destroy((err) => {
     //   if (err) {
@@ -280,7 +320,6 @@ const logoutUser = asyncHandler(async (req, res, next) => {
       where: { id: parseInt(userId) },
       data: { refreshToken: null },
     });
-    console.log(res.cookies);
     res
       .status(200)
       .clearCookie("connect.sid", cookieOptions)
@@ -310,6 +349,7 @@ export {
   refreshAccessToken,
   forgetPassword,
   verifyResetToken,
+  checkTokenValidity,
   changePassword,
   logoutUser,
 };

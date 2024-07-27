@@ -8,6 +8,7 @@ import {
   changePassword,
   verifyResetToken,
   logoutUser,
+  checkTokenValidity,
 } from "../controllers/auth.controller.js";
 import passport from "passport";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -19,6 +20,7 @@ router.route("/refresh-token").post(refreshAccessToken);
 router.route("/forget-password").post(forgetPassword);
 router.route("/fullRegister").post(fullRegisteration);
 router.route("/login").post(loginWithEmail);
+router.route("/validate").get(checkTokenValidity);
 
 router.get(
   "/google",
