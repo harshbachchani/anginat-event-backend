@@ -12,12 +12,20 @@ const httpServer = createServer(app);
 
 import { errHandler } from "./middlewares/err.middleware.js";
 
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN,
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN,
+  credentials: true,
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Accept",
+    "Origin",
+    "X-Requested-With",
+    "Cache-Control",
+  ],
+};
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(
   express.json({

@@ -16,6 +16,7 @@ passport.use(
         let user = await prisma.admin.findUnique({
           where: { googleId: profile.id },
         });
+        console.log(`my user is ${user}`);
         if (!user) {
           user = await prisma.admin.create({
             data: {

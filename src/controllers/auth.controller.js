@@ -308,13 +308,17 @@ const changePassword = asyncHandler(async (req, res, next) => {
 const googleCheck = asyncHandler(async (req, res) => {
   try {
     const user = req.user;
-    console.log(user);
+    console.log(`my another user is ${user}`);
     const existeduser = await prisma.admin.findFirst({
       where: {
-        phoneNo: user.phoneNo,
+        AND: {
+          phoneNo,
+          companyName,
+        },
       },
     });
-    if (!existeduser) {
+    console.log(`my existed user is ${existeduser}`);
+    if (existeduser) {
       const accessToken = await generateAccessToken(existeduser);
       const refreshToken = await generateRefreshToken(existeduser);
       res.cookie("accessToken", accessToken, cookieOptions);
