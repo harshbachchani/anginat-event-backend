@@ -7,6 +7,7 @@ model Event {
     id                 Int                 @id @default(autoincrement())
     eventName          String
     isPaid             Boolean
+    image              String
     address            String
     city               String
     eventDate          DateTime
