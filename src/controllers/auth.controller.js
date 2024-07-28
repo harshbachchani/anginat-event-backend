@@ -115,8 +115,14 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
     if (!isMatch) return next(new ApiError(400, "Incorrect credentials"));
     if (!myuser.companyName || !myuser.phoneNo) {
       return res
-        .status(210)
-        .json(new ApiResponse(210, { userId: myuser.id, email }));
+        .status(202)
+        .json(
+          new ApiResponse(
+            202,
+            { userId: myuser.id, email },
+            "Additional Info is required"
+          )
+        );
     }
     const accessToken = await generateAccessToken(myuser);
     const refreshToken = await generateRefreshToken(myuser);
