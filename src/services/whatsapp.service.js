@@ -26,9 +26,8 @@ const registerPhoneNo = async (name, phoneNumber) => {
 const sendWhatsappMsg = async (eventData, phoneNumber) => {
   try {
     const url = "https://api.interakt.ai/v1/public/message/";
-    const result = formatDateTime(eventData.date);
-    const formatDate = result.formattedDate;
-    const formatTime = result.formattedTime;
+    const startDate = formatDateTime(eventData.startDate);
+    const endDate = formatDateTime(eventData.endDate);
     const data = {
       countryCode: "+91",
       phoneNumber,
@@ -41,8 +40,8 @@ const sendWhatsappMsg = async (eventData, phoneNumber) => {
         bodyValues: [
           eventData.userName,
           eventData.name,
-          formatDate,
-          formatTime,
+          startDate,
+          endDate,
           eventData.address,
           eventData.city,
         ],

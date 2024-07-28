@@ -2,12 +2,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import prisma from "../db/config.js";
-import {
-  deletefromCloudinary,
-  uploadOnCloudinary,
-} from "../utils/clodinary.js";
 import { generateQRForUser } from "../services/qrGenerator.service.js";
-import { convertDateToIST } from "../services/dateconversion.service.js";
 import {
   registerPhoneNo,
   sendWhatsappMsg,
@@ -90,7 +85,8 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       QR: result.data,
       userName: user.userName,
       name: eventDetail.eventName,
-      date: eventDetail.eventDate,
+      startDate: eventDetail.startDate,
+      endDate: eventDetail.endDate,
       address: eventDetail.address,
       city: eventDetail.city,
     };
@@ -100,7 +96,6 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
         new ApiError(500, "Error sending whatsapp message", sendmsg.error)
       );
     }
-
     return res
       .status(200)
       .json(

@@ -7,10 +7,9 @@ model Event {
     id                 Int                 @id @default(autoincrement())
     eventName          String
     isPaid             Boolean
-    image              String
     address            String
-    city               String
-    eventDate          DateTime
+    startDate          DateTime
+    endDate            DateTime
     status             EventStatus         @default(ACTIVE)
     userJourney        String[]
     eventTemplate      Json

@@ -10,9 +10,7 @@ const formatDateTime = (date) => {
   const mydateString = date.toISOString().replace("Z", offset);
   const mydate = parseISO(mydateString);
   const formattedDate = format(mydate, "dd-MMM-yyyy");
-  const formattedTime = format(mydate, "hh:mm a");
-  console.log(formattedDate);
-  console.log(formattedTime);
-  return { formattedDate, formattedTime };
+  return formattedDate;
 };
+
 export { convertDateToIST, formatDateTime };
