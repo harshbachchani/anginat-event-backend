@@ -14,9 +14,8 @@ passport.use(
     async (req, accessToken, refreshToken, profile, done) => {
       try {
         let user = await prisma.admin.findUnique({
-          where: { googleId: profile.id },
+          where: { email: profile.emails[0].value },
         });
-        console.log(`my user is ${user}`);
         if (!user) {
           user = await prisma.admin.create({
             data: {
@@ -24,6 +23,12 @@ passport.use(
               email: profile.emails[0].value,
             },
           });
+        } else if (!user.googleId) {
+          user = await prisma.admin.update({
+            where: { id: user.id },
+            data: { googleId: profile.id },
+          });
+          console.log(`My Updated User is: ${user}`);
         }
         done(null, user);
       } catch (err) {

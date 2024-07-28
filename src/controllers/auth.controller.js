@@ -118,6 +118,7 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
     const myuser = await prisma.admin.findUnique({ where: { email } });
     if (!myuser)
       return next(new ApiError(400, "User do not exist please register first"));
+    if (!myuser.password) return next(new ApiError(401, "Invalid Password"));
     const isMatch = await isPasswordCorrect(myuser, password);
     if (!isMatch) return next(new ApiError(400, "Incorrect credentials"));
     const accessToken = await generateAccessToken(myuser);
@@ -309,7 +310,6 @@ const googleCheck = asyncHandler(async (req, res) => {
   try {
     const user = req.user;
     console.log(`my another user is ${JSON.stringify(user)}`);
-
     if (user.phoneNo) {
       console.log("User is already logged in ");
       const accessToken = await generateAccessToken(user);
