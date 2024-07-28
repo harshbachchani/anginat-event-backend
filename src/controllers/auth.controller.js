@@ -56,7 +56,7 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
     if (!(userId && companyName && phoneNo))
       return next(new ApiError(400, "All fields are required"));
     const myuser = await prisma.admin.findUnique({
-      where: { id: Number(userId) },
+      where: { id: parseInt(userId) },
     });
     if (!myuser) return next(new ApiError(400, "Invalid User Id"));
     if (myuser.companyName && myuser.phoneNo)
@@ -80,6 +80,7 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(501, "Error in generating access and refresh token ")
       );
+
     const updateduser = await prisma.admin.update({
       where: { id: Number(userId) },
       data: {
