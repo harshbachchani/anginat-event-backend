@@ -35,7 +35,7 @@ const sendWhatsappMsg = async (eventData, phoneNumber) => {
       type: "Template",
       template: {
         name: "anginatevent",
-        languageCode: "en",
+        languageCode: "en_US",
         headerValues: [eventData.QR],
         bodyValues: [
           eventData.userName,
