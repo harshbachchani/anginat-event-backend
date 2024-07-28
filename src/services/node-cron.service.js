@@ -7,7 +7,7 @@ const scheduleTask = cron.schedule("0 * * * *", async () => {
     const now = new Date();
     const result = await prisma.event.updateMany({
       where: {
-        eventDate: {
+        endDate: {
           lt: now,
         },
         status: "ACTIVE",
