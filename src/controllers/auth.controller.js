@@ -122,9 +122,11 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
     const isMatch = await isPasswordCorrect(myuser, password);
     if (!isMatch) return next(new ApiError(400, "Incorrect credentials"));
     if (!myuser.companyName || !myuser.phoneNo) {
-      return res.redirect(
-        `https://event-frontend-omega.vercel.app/signup1?id=${encodeURIComponent(myuser.id)}`
-      );
+      return res
+        .status(200)
+        .redirect(
+          `https://event-frontend-omega.vercel.app/signup1?id=${encodeURIComponent(myuser.id)}`
+        );
     }
     const accessToken = await generateAccessToken(myuser);
     const refreshToken = await generateRefreshToken(myuser);
