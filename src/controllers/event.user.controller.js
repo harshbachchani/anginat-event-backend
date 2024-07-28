@@ -162,11 +162,10 @@ const markUserJourney = asyncHandler(async (req, res, next) => {
     const { action, userId, eventId } = req.body;
     if (!(action && userId && eventId))
       return next(new ApiError(400, "All UserJourney fields are required"));
-    const data = await prisma.userJourney.findMany({
+    const data = await prisma.userJourney.findFirst({
       where: { eventId, userId, action },
     });
-    if (data || data.length !== 0)
-      return next(new ApiError(401, `${action} Already Marked True`));
+    if (data) return next(new ApiError(401, `${action} Already Marked True`));
     const userJourney = await prisma.userJourney.create({
       data: {
         userId: parseInt(userId),
