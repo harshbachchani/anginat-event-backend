@@ -309,16 +309,11 @@ const googleCheck = asyncHandler(async (req, res) => {
   try {
     const user = req.user;
     console.log(`my another user is ${JSON.stringify(user)}`);
-    const existeduser = await prisma.admin.findFirst({
-      where: {
-        phoneNo: user.phoneNo,
-      },
-    });
-    console.log(`my existed user is ${JSON.stringify(existeduser)}`);
-    if (existeduser) {
+
+    if (user.phoneNo) {
       console.log("User is already logged in ");
-      const accessToken = await generateAccessToken(existeduser);
-      const refreshToken = await generateRefreshToken(existeduser);
+      const accessToken = await generateAccessToken(user);
+      const refreshToken = await generateRefreshToken(user);
       res.cookie("accessToken", accessToken, cookieOptions);
       res.cookie("refreshToken", refreshToken, cookieOptions);
       return res.redirect("https://event-frontend-omega.vercel.app/dashboard");
