@@ -5,7 +5,6 @@ import prisma from "../db/config.js";
 
 const registerEvent = asyncHandler(async (req, res, next) => {
   try {
-    console.log(req.body);
     const {
       eventName,
       isPaid,
@@ -16,14 +15,6 @@ const registerEvent = asyncHandler(async (req, res, next) => {
       eventTemplate,
       attendieType,
     } = req.body;
-    console.log(eventName);
-    console.log(isPaid);
-    console.log(address);
-    console.log(startDate);
-    console.log(endDate);
-    console.log(userJourney);
-    console.log(eventTemplate);
-    console.log(attendieType);
 
     if (
       !(
