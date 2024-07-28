@@ -31,16 +31,12 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
 
     if (!(userName && email && phoneNo))
       return next(new ApiResponse(400, "Cannot get required fields"));
-    const existerUser = await prisma.eventRegistration.findMany({
+    const existerUser = await prisma.eventRegistration.findFirst({
       where: {
-        AND: {
-          eventId: eventDetail.id,
-          phoneNo,
-          email,
-        },
+        AND: [{ eventId: eventDetail.id }, { phoneNo }, { email }],
       },
     });
-    if (existerUser || existerUser.length !== 0) {
+    if (existerUser) {
       return next(new ApiError(400, "User Already registered in the event"));
     }
     const userDetail = await prisma.eventRegistration.create({
