@@ -55,11 +55,11 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
     const { userId, companyName, phoneNo } = req.body;
     if (!(userId && companyName && phoneNo))
       return next(new ApiError(400, "All fields are required"));
-    const user = await prisma.admin.findUnique({
+    const myuser = await prisma.admin.findUnique({
       where: { id: Number(userId) },
     });
     if (!user) return next(new ApiError(400, "Invalid User Id"));
-    if (user.companyName && user.phoneNo)
+    if (myuser.companyName && myuser.phoneNo)
       return next(
         new ApiError(
           400,
@@ -74,8 +74,8 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
         400,
         "User with this phone no already exist use different values"
       );
-    const accessToken = await generateAccessToken(user);
-    const refreshToken = await generateRefreshToken(user);
+    const accessToken = await generateAccessToken(myuser);
+    const refreshToken = await generateRefreshToken(myuser);
     if (!(accessToken && refreshToken))
       return next(
         new ApiError(501, "Error in generating access and refresh token ")
@@ -89,21 +89,13 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
       },
     });
     if (!updateduser) return next(new ApiError(501, "Error in updating user"));
-    const xuser = await prisma.admin.findUnique({
-      where: { id: updateduser.id },
-    });
-
-    const { password, ...userwithoutpassword } = xuser;
+    const { password, ...user } = updateduser;
     res.cookie("accessToken", accessToken, cookieOptions);
     res.cookie("refreshToken", refreshToken, cookieOptions);
     return res
       .status(200)
       .json(
-        new ApiResponse(
-          200,
-          { user: userwithoutpassword, accessToken },
-          "User Saved Successfuly"
-        )
+        new ApiResponse(200, { user, accessToken }, "User Saved Successfuly")
       );
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
@@ -123,10 +115,8 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
     if (!isMatch) return next(new ApiError(400, "Incorrect credentials"));
     if (!myuser.companyName || !myuser.phoneNo) {
       return res
-        .status(200)
-        .redirect(
-          `https://event-frontend-omega.vercel.app/signup1?id=${encodeURIComponent(myuser.id)}`
-        );
+        .status(300)
+        .json(new ApiResponse(301, { userId: myuser.id, email }));
     }
     const accessToken = await generateAccessToken(myuser);
     const refreshToken = await generateRefreshToken(myuser);
@@ -134,7 +124,7 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(500, "Internal Server Error while generating token")
       );
-    const updateduser = await prisma.admin.update({
+    const user = await prisma.admin.update({
       where: { id: myuser.id },
       data: { refreshToken },
     });
@@ -145,7 +135,7 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
       .json(
         new ApiResponse(
           200,
-          { updateduser, accessToken },
+          { user, accessToken },
           "User logged in successfully"
         )
       );
@@ -242,6 +232,7 @@ const verifyResetToken = asyncHandler(async (req, res, next) => {
 
 const checkTokenValidity = asyncHandler(async (req, res, next) => {
   try {
+    let user;
     const accessToken =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
@@ -259,24 +250,24 @@ const checkTokenValidity = asyncHandler(async (req, res, next) => {
       );
       if (!decodedrefreshtoken)
         return next(new ApiError(401, "Tokens are expired please login again"));
-      const userx = await prisma.admin.findUnique({
+      user = await prisma.admin.findUnique({
         where: { id: decodedaccesstoken?.id },
       });
-      if (!userx) return next(new ApiError(401, "Invalid refresh Token"));
-      const newaccessToken = await generateAccessToken(userx);
+      if (!user) return next(new ApiError(401, "Invalid refresh Token"));
+      const newaccessToken = await generateAccessToken(user);
       res.cookie("accessToken", newaccessToken, cookieOptions);
       res.cookie("refreshToken", refreshToken, cookieOptions);
       return res
         .status(201)
-        .json(new ApiResponse(200, {}, "User Verified Successfully"));
+        .json(new ApiResponse(200, user, "User Verified Successfully"));
     }
-    const user = await prisma.admin.findUnique({
+    user = await prisma.admin.findUnique({
       where: { id: decodedaccesstoken?.id },
     });
     if (!user) return next(new ApiError(401, "Invalid Access Token"));
     return res
       .status(201)
-      .json(new ApiResponse(200, {}, "User Verified Successfully"));
+      .json(new ApiResponse(200, user, "User Verified Successfully"));
   } catch (err) {
     return next(new ApiError(500, "Internal Server Error", err));
   }
