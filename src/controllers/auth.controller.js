@@ -58,7 +58,7 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
     const myuser = await prisma.admin.findUnique({
       where: { id: Number(userId) },
     });
-    if (!user) return next(new ApiError(400, "Invalid User Id"));
+    if (!myuser) return next(new ApiError(400, "Invalid User Id"));
     if (myuser.companyName && myuser.phoneNo)
       return next(
         new ApiError(
@@ -138,13 +138,7 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
     res.cookie("refreshToken", refreshToken, cookieOptions);
     return res
       .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          { user, accessToken },
-          "User logged in successfully"
-        )
-      );
+      .json(new ApiResponse(200, user, "User logged in successfully"));
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
