@@ -121,6 +121,11 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
     if (!myuser.password) return next(new ApiError(401, "Invalid Password"));
     const isMatch = await isPasswordCorrect(myuser, password);
     if (!isMatch) return next(new ApiError(400, "Incorrect credentials"));
+    if (!myuser.companyName || !myuser.phoneNo) {
+      return res.redirect(
+        `https://event-frontend-omega.vercel.app/signup1?id=${encodeURIComponent(myuser.id)}`
+      );
+    }
     const accessToken = await generateAccessToken(myuser);
     const refreshToken = await generateRefreshToken(myuser);
     if (!(accessToken && refreshToken))
@@ -311,14 +316,12 @@ const googleCheck = asyncHandler(async (req, res) => {
     const user = req.user;
     console.log(`my another user is ${JSON.stringify(user)}`);
     if (user.phoneNo) {
-      console.log("User is already logged in ");
       const accessToken = await generateAccessToken(user);
       const refreshToken = await generateRefreshToken(user);
       res.cookie("accessToken", accessToken, cookieOptions);
       res.cookie("refreshToken", refreshToken, cookieOptions);
       return res.redirect("https://event-frontend-omega.vercel.app/dashboard");
     } else {
-      console.log("User is first time");
       return res.redirect(
         `https://event-frontend-omega.vercel.app/signup1?id=${encodeURIComponent(user.id)}`
       );
