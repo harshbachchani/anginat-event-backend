@@ -70,9 +70,11 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
       where: { phoneNo },
     });
     if (existingusers.length > 0)
-      return new ApiError(
-        400,
-        "User with this phone no already exist use different values"
+      return next(
+        new ApiError(
+          400,
+          "User with this phone no already exist use different values"
+        )
       );
     const accessToken = await generateAccessToken(myuser);
     const refreshToken = await generateRefreshToken(myuser);
