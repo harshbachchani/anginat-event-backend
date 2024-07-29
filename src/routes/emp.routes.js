@@ -8,3 +8,4 @@ const router = Router();
 
 router.route("/register").post(registerEmployee);
 router.route("/login").post(loginEmployee);
+export default router;
