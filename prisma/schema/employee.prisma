@@ -1,0 +1,20 @@
+model Employee {
+    id            Int                    @id @default(autoincrement())
+    name          String
+    phoneNo       String                 @unique
+    password      String
+    refreshToken  String?
+    createdAt     DateTime               @default(now())
+    organizations EmployeeOrganization[]
+}
+
+model EmployeeOrganization {
+    id         Int      @id @default(autoincrement())
+    employeeId Int
+    adminId    Int
+    role       String?
+    employee   Employee @relation(fields: [employeeId], references: [id])
+    admin      Admin    @relation(fields: [adminId], references: [id])
+
+    @@unique([employeeId, adminId])
+}

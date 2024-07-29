@@ -1,20 +1,20 @@
 enum Role {
     Admin
     Client
-    Employee
 }
 
 model Admin {
-    id                   Int       @id @default(autoincrement())
-    email                String    @unique
+    id                   Int                    @id @default(autoincrement())
+    email                String                 @unique
     password             String?
-    role                 Role      @default(Client)
+    role                 Role                   @default(Client)
     companyName          String?
-    googleId             String?   @unique
-    phoneNo              String?   @unique
+    googleId             String?                @unique
+    phoneNo              String?                @unique
     refreshToken         String?
     resetPasswordToken   String?
     resetPasswordExpires DateTime?
-    createdAt            DateTime  @default(now())
+    createdAt            DateTime               @default(now())
     events               Event[]
+    employees            EmployeeOrganization[]
 }

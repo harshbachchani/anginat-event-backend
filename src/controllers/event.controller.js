@@ -70,7 +70,7 @@ const registerEvent = asyncHandler(async (req, res, next) => {
       },
     });
 
-    if (!event) return next(new ApiError(501, "Error in creating event"));
+    if (!event) return next(new ApiError(500, "Error in creating event"));
     try {
       event.eventTemplate = JSON.stringify(event.eventTemplate);
     } catch (error) {
@@ -79,8 +79,8 @@ const registerEvent = asyncHandler(async (req, res, next) => {
       );
     }
     return res
-      .status(200)
-      .json(new ApiResponse(200, event, "Event Created Successfully"));
+      .status(201)
+      .json(new ApiResponse(201, event, "Event Created Successfully"));
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
@@ -90,11 +90,13 @@ const getAllCreatedEvents = asyncHandler(async (req, res, next) => {
   try {
     const user = req.user;
     const { status } = req.query;
-    if (!user) return next(new ApiError("Cannot get User Details"));
+    if (!user)
+      return next(new ApiError(401, "User Authentication is required"));
     const events = await prisma.event.findMany({
       where: { adminId: user.id, status },
     });
-    if (!events) return next(new ApiError(500, "Error in fetching events "));
+    if (!events || !events.length)
+      return next(new ApiError(404, "Error in fetching events "));
     for (let event of events) {
       event.eventTemplate = JSON.stringify(event.eventTemplate);
     }
@@ -108,11 +110,11 @@ const getAllCreatedEvents = asyncHandler(async (req, res, next) => {
 const getEventDetails = asyncHandler(async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!id) return next(new ApiError(400, "Event Id is required"));
     const event = await prisma.event.findUnique({
       where: { id: parseInt(id) },
     });
-    if (!event)
-      return next(new ApiError(400, "Cannot get event with provided Id"));
+    if (!event) return next(new ApiError(404, "Event not found"));
     try {
       event.eventTemplate = JSON.stringify(event.eventTemplate);
     } catch (error) {
@@ -131,11 +133,12 @@ const getEventDetails = asyncHandler(async (req, res, next) => {
 const deleteEvent = asyncHandler(async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!id) return next(new ApiError(400, "Event Id is required"));
     const event = await prisma.event.findUnique({
       where: { id: parseInt(id) },
     });
     if (!event) {
-      return next(new ApiError(400, "Cannot get event with provided Id"));
+      return next(new ApiError(404, "Event Not Found"));
     }
     await prisma.event.delete({ where: { id: parseInt(id) } });
     return res
@@ -148,11 +151,13 @@ const deleteEvent = asyncHandler(async (req, res, next) => {
 const updateEvent = asyncHandler(async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!id) return next(new ApiError(400, "Event Id is required"));
     const event = await prisma.event.findUnique({
       where: { id: parseInt(id) },
     });
-    if (!event)
-      return next(new ApiError(400, "Cannot get event with provided Id"));
+    if (!event) {
+      return next(new ApiError(404, "Event Not Found"));
+    }
     const updateinfo = {};
 
     const {
@@ -204,7 +209,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
 
     if (Object.keys(updateinfo).length === 0)
       return next(new ApiError(400, "Give atleast one of the parameters"));
-    console.log(updateinfo);
+
     const updatedevent = await prisma.event.update({
       where: { id: parseInt(id) },
       data: updateinfo,
@@ -228,10 +233,11 @@ const updateEvent = asyncHandler(async (req, res, next) => {
 const getAllEventRegsiteredUser = asyncHandler(async (req, res, next) => {
   try {
     const { eventId } = req.params;
+    if (!eventId) return next(new ApiError(400, "Event Id is required"));
     const event = await prisma.event.findUnique({
       where: { id: parseInt(eventId) },
     });
-    if (!event) return next(new ApiError(400, "No such event is found"));
+    if (!event) return next(new ApiError(404, "Event Not Found"));
     const eventRegisteredUsers = await prisma.eventRegistration.findMany({
       where: { eventId: parseInt(eventId) },
       select: {
@@ -243,8 +249,10 @@ const getAllEventRegsiteredUser = asyncHandler(async (req, res, next) => {
         formValues: true,
       },
     });
-    if (!eventRegisteredUsers)
-      return next(new ApiResponse(501, "Unable to get users"));
+    if (!eventRegisteredUsers.length)
+      return next(
+        new ApiResponse(404, "No registered users found for this event")
+      );
 
     return res
       .status(200)

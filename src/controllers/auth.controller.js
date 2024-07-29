@@ -24,7 +24,7 @@ const registerWithEmail = asyncHandler(async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const existeduser = await prisma.admin.findUnique({ where: { email } });
     if (existeduser)
-      return next(new ApiError(400, "User already exist with same email"));
+      return next(new ApiError(409, "User already exist with the same email"));
     const myuser = await prisma.admin.create({
       data: {
         email,
@@ -44,7 +44,7 @@ const registerWithEmail = asyncHandler(async (req, res, next) => {
 
     return res
       .status(201)
-      .json(new ApiResponse(200, createduser, "User Registered Successfully"));
+      .json(new ApiResponse(201, createduser, "User Registered Successfully"));
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
@@ -58,30 +58,20 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
     const myuser = await prisma.admin.findUnique({
       where: { id: parseInt(userId) },
     });
-    if (!myuser) return next(new ApiError(400, "Invalid User Id"));
+    if (!myuser) return next(new ApiError(404, "User not found"));
     if (myuser.companyName && myuser.phoneNo)
       return next(
-        new ApiError(
-          400,
-          "Phone no and company name of user already exist please login directly"
-        )
+        new ApiError(400, "User already, Registered Please login directly")
       );
     const existingusers = await prisma.admin.findMany({
       where: { phoneNo },
     });
     if (existingusers.length > 0)
-      return next(
-        new ApiError(
-          400,
-          "User with this phone no already exist use different values"
-        )
-      );
+      return next(new ApiError(409, "Phone no already in use"));
     const accessToken = await generateAccessToken(myuser);
     const refreshToken = await generateRefreshToken(myuser);
     if (!(accessToken && refreshToken))
-      return next(
-        new ApiError(501, "Error in generating access and refresh token ")
-      );
+      return next(new ApiError(500, "Error generating tokens"));
 
     const updateduser = await prisma.admin.update({
       where: { id: Number(userId) },
@@ -91,14 +81,18 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
         refreshToken,
       },
     });
-    if (!updateduser) return next(new ApiError(501, "Error in updating user"));
+    if (!updateduser) return next(new ApiError(500, "Error updating user"));
     const { password, ...user } = updateduser;
     res.cookie("accessToken", accessToken, cookieOptions);
     res.cookie("refreshToken", refreshToken, cookieOptions);
     return res
       .status(200)
       .json(
-        new ApiResponse(200, { user, accessToken }, "User Saved Successfuly")
+        new ApiResponse(
+          200,
+          { user, accessToken },
+          "User Full registeration completed successfully"
+        )
       );
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
@@ -112,7 +106,10 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
       return next(new ApiError(400, "Email and password fields are required"));
     const myuser = await prisma.admin.findUnique({ where: { email } });
     if (!myuser)
-      return next(new ApiError(400, "User do not exist please register first"));
+      return next(new ApiError(404, "User not found, Please register first"));
+    if (!myuser.password) {
+      return next(new ApiError(401, "Invalid password"));
+    }
     if (!myuser.password) return next(new ApiError(401, "Invalid Password"));
     const isMatch = await isPasswordCorrect(myuser, password);
     if (!isMatch) return next(new ApiError(400, "Incorrect credentials"));
@@ -130,9 +127,7 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
     const accessToken = await generateAccessToken(myuser);
     const refreshToken = await generateRefreshToken(myuser);
     if (!(accessToken && refreshToken))
-      return next(
-        new ApiError(500, "Internal Server Error while generating token")
-      );
+      return next(new ApiError(500, "Error generating tokens"));
     const user = await prisma.admin.update({
       where: { id: myuser.id },
       data: { refreshToken },
@@ -152,15 +147,22 @@ const refreshAccessToken = asyncHandler(async (req, res, next) => {
     const { refreshToken } = req.cookies || req.body;
     if (!refreshToken)
       return next(new ApiError(400, "Refresh Token is required"));
-    const decodedtoken = await jwt.verify(refreshToken);
-    if (!decodedtoken)
-      return next(new ApiError(400, "Token Expired Or Invalid"));
+    let decodedtoken;
+    try {
+      decodedtoken = await jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+      );
+    } catch (err) {
+      return next(new ApiError(401, "Token Expired Or Invalid", err));
+    }
+
     const myuser = await prisma.admin.findUnique({
       where: { id: decodedtoken.id },
     });
-    if (!myuser) return next(new ApiError(400, "User don't exist"));
+    if (!myuser) return next(new ApiError(404, "User doesn't exist"));
     if (refreshToken != myuser.refreshToken)
-      return next(new ApiError(400, "Refresh Token not matched"));
+      return next(new ApiError(401, "Refresh Token not matched"));
     const accessToken = await generateAccessToken(myuser);
     if (!accessToken)
       return next(new ApiError(500, "Error generating access token"));
@@ -184,7 +186,7 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
     const { email } = req.body;
     if (!email) return next(new ApiError(400, "Email is required"));
     const myuser = await prisma.admin.findUnique({ where: { email } });
-    if (!myuser) return next(new ApiError(400, "User not exist"));
+    if (!myuser) return next(new ApiError(404, "User not Found"));
     const token = crypto.randomBytes(20).toString("hex");
     const expiry = Date.now() + 3600000;
     await prisma.admin.update({
@@ -203,7 +205,7 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
     });
     return res
       .status(200)
-      .json(new ApiResponse(200, {}, "Email sent For Password Reset"));
+      .json(new ApiResponse(200, {}, "Email sent for password Reset"));
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
@@ -212,22 +214,20 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
 const verifyResetToken = asyncHandler(async (req, res, next) => {
   try {
     const { token } = req.params;
-    const users = await prisma.admin.findMany({
+    const myuser = await prisma.admin.findFirst({
       where: {
         resetPasswordToken: token,
       },
     });
-    const myuser = users[0];
 
-    if (!myuser) return next(new ApiError(400, "Invalid Password Reset token"));
+    if (!myuser) return next(new ApiError(400, "Invalid Reset Password token"));
     if (myuser.resetPasswordExpires < new Date()) {
       return next(new ApiError(400, "Password Teset Token has been expired"));
     }
-    /*
-    to give the url of the password reset form where user input the password
-    */
-    // res.render("https://google.com", { token: token });
-    res.send("Hii from me");
+
+    return res.redirect(
+      `https://event-frontend-omega.vercel.app/resetpassword?token=${encodeURIComponent(token)}`
+    );
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
@@ -280,13 +280,15 @@ const changePassword = asyncHandler(async (req, res, next) => {
     const { password } = req.body;
     if (!password) return next(new ApiError(400, "Password field is required"));
     const { token } = req.params;
-    const users = await prisma.admin.findMany({
+    if (!token) return next(new ApiError(400, "Token is required"));
+
+    const myuser = await prisma.admin.findFirst({
       where: {
         resetPasswordToken: token,
       },
     });
-    const myuser = users[0];
-    if (!myuser) return next(new ApiError(400, "Invalid Password Reset token"));
+    if (!myuser)
+      return next(new ApiError(400, "Invalid or expired password reset token"));
     if (myuser.resetPasswordExpires < new Date()) {
       return next(new ApiError(400, "Password Teset Token has been expired"));
     }

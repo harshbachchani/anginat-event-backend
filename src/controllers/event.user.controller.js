@@ -10,6 +10,8 @@ import {
 
 const userEventRegistration = asyncHandler(async (req, res, next) => {
   try {
+    const phoneRegex = /^(\d{10}|\d{11})$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const { eventId } = req.params;
     if (!eventId) return next(new ApiError(400, "Event Id is required"));
     const { formValues } = req.body;
@@ -20,24 +22,43 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
     });
     if (!eventDetail)
       return next(
-        new ApiError(400, "Cannot get eventdetails as per given eventId")
+        new ApiError(404, "Cannot get eventdetails as per given eventId")
       );
-    const phoneNo =
+    let phoneNo =
       formValues["phone_input_0A6EEDDB-E0D5-4BC7-8D4B-CF2D4896B786"];
     const email =
       formValues["email_input_A4A11559-34CB-4A95-BB86-E89C8CABE06C"];
     const userName =
       formValues["text_input_103DC733-9828-4C8D-BDD5-E2BCDD96D92A"];
-
     if (!(userName && email && phoneNo))
       return next(new ApiResponse(400, "Cannot get required fields"));
+    if (userName.length == 0 || email.length == 0 || phoneNo.length == 0)
+      return next(
+        new ApiError(400, "Length of field should be greater than 0")
+      );
+    if (!phoneRegex.test(phoneNo)) {
+      return next(
+        new ApiError(
+          400,
+          "Invalid phone number. It should be 10 digits or 11 digits starting with 0."
+        )
+      );
+    }
+    if (!emailRegex.test(email)) {
+      return next(new ApiError(400, "Invalid email format."));
+    }
+    phoneNo = phoneNo.toString();
+    if (phoneNo.at(0) === "0") {
+      phoneNo = phoneNo.substring(1, phoneNo.length);
+    }
+
     const existerUser = await prisma.eventRegistration.findFirst({
       where: {
-        AND: [{ eventId: eventDetail.id }, { phoneNo }, { email }],
+        AND: [{ eventId: eventDetail.id }, { phoneNo }],
       },
     });
     if (existerUser) {
-      return next(new ApiError(400, "User Already registered in the event"));
+      return next(new ApiError(409, "User Already registered in the event"));
     }
     const userDetail = await prisma.eventRegistration.create({
       data: {
@@ -56,7 +77,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
     const result = await generateQRForUser(userDetail, eventDetail);
     if (!result.success)
       return next(
-        new ApiError(400, "Error in generating QR code for user ", result.error)
+        new ApiError(500, "Error in generating QR code for user ", result.error)
       );
     const user = await prisma.eventRegistration.update({
       where: { id: parseInt(userDetail.id) },
@@ -93,9 +114,9 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       );
     }
     return res
-      .status(200)
+      .status(201)
       .json(
-        new ApiResponse(200, user, "User registered to the event successfully")
+        new ApiResponse(201, user, "User registered to the event successfully")
       );
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
@@ -109,10 +130,8 @@ const getAllEvents = asyncHandler(async (req, res, next) => {
         status: "ACTIVE",
       },
     });
-    if (!events)
-      return next(
-        new ApiError(500, "Internal Server Error while fetching events")
-      );
+    if (!events || events.length == 0)
+      return next(new ApiError(404, "No Active Events Found"));
     for (let event of events) {
       event.eventTemplate = JSON.stringify(event.eventTemplate);
     }
@@ -132,6 +151,7 @@ const getEventById = asyncHandler(async (req, res, next) => {
       where: { id: parseInt(eventId), status: "ACTIVE" },
     });
 
+    if (!event) return next(new ApiError(404, "No such event exist"));
     try {
       event.eventTemplate = JSON.stringify(event.eventTemplate);
     } catch (error) {
@@ -139,7 +159,6 @@ const getEventById = asyncHandler(async (req, res, next) => {
         new ApiError(500, "Error Cannot parse the data to string", error)
       );
     }
-    if (!event) return next(new ApiError(404, "No such event exist"));
     return res
       .status(200)
       .json(new ApiResponse(200, event, "Event fetched successfully"));
