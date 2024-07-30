@@ -7,6 +7,7 @@ const errHandler = (err, req, res, next) => {
       statusCode: err.statusCode,
       message: err.message,
       errors: err.errors,
+      detail: "No detail is provided ",
     });
   }
 
