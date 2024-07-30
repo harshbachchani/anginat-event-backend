@@ -3,6 +3,7 @@ model Employee {
     name          String
     phoneNo       String                 @unique
     password      String
+    email         String                 @unique
     refreshToken  String?
     createdAt     DateTime               @default(now())
     organizations EmployeeOrganization[]
