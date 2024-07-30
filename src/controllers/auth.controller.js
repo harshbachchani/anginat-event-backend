@@ -44,7 +44,7 @@ const registerWithEmail = asyncHandler(async (req, res, next) => {
 
     return res
       .status(201)
-      .json(new ApiResponse(201, createduser, "User Registered Successfully"));
+      .json(new ApiResponse(201, createduser, "User registered successfully"));
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
@@ -106,10 +106,7 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
       return next(new ApiError(400, "Email and password fields are required"));
     const myuser = await prisma.admin.findUnique({ where: { email } });
     if (!myuser)
-      return next(new ApiError(404, "User not found, Please register first"));
-    if (!myuser.password) {
-      return next(new ApiError(401, "Invalid password"));
-    }
+      return next(new ApiError(404, "User not found, please register first"));
     if (!myuser.password) return next(new ApiError(401, "Invalid Password"));
     const isMatch = await isPasswordCorrect(myuser, password);
     if (!isMatch) return next(new ApiError(400, "Incorrect credentials"));

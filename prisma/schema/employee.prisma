@@ -1,21 +1,23 @@
 model Employee {
-    id            Int                    @id @default(autoincrement())
-    name          String
-    phoneNo       String                 @unique
-    password      String
-    email         String                 @unique
-    refreshToken  String?
-    createdAt     DateTime               @default(now())
-    organizations EmployeeOrganization[]
+    id           Int               @id @default(autoincrement())
+    name         String
+    loginId      String            @unique
+    phoneNo      String
+    password     String
+    refreshToken String?
+    createdAt    DateTime          @default(now())
+    adminId      Int
+    Admin        Admin             @relation(fields: [adminId], references: [id])
+    assignments  EventAssignment[]
 }
 
-model EmployeeOrganization {
+model EventAssignment {
     id         Int      @id @default(autoincrement())
     employeeId Int
-    adminId    Int
+    eventId    Int
     role       String?
     employee   Employee @relation(fields: [employeeId], references: [id])
-    admin      Admin    @relation(fields: [adminId], references: [id])
+    event      Event    @relation(fields: [eventId], references: [id])
 
-    @@unique([employeeId, adminId])
+    @@unique([employeeId, eventId])
 }

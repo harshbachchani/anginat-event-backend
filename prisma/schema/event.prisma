@@ -19,4 +19,5 @@ model Event {
     admin              Admin               @relation(fields: [adminId], references: [id]) // Define the relation
     eventRegistrations EventRegistration[]
     userJournerys      UserJourney[]
+    eventAssignments   EventAssignment[]
 }
