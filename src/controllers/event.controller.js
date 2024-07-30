@@ -17,18 +17,22 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     } = req.body;
     console.log(req.body);
     if (
-      !(
-        eventName &&
-        isPaid &&
-        address &&
-        startDate &&
-        endDate &&
-        userJourney &&
-        eventTemplate &&
-        attendieType
-      )
-    )
-      return next(new ApiError(400, "All fields are required"));
+      !eventName ||
+      !isPaid ||
+      !address ||
+      !startDate ||
+      !endDate ||
+      !userJourney ||
+      !eventTemplate ||
+      !attendieType
+    ) {
+      return next(
+        new ApiError(
+          400,
+          "All fields are required. Please provide valid event details."
+        )
+      );
+    }
     if (!Date.parse(startDate) || !Date.parse(endDate)) {
       return next(new ApiError(400, "Invalid date formats"));
     }
