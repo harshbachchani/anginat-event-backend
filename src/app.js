@@ -53,8 +53,8 @@ import eventRegistrationRoutes from "./routes/event.user.routes.js";
 import employeeRoutes from "./routes/emp.routes.js";
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/admin/event", eventRoutes);
+app.use("/api/v1/admin/employee", employeeRoutes);
 app.use("/api/v1/event", eventRegistrationRoutes);
-app.use("/api/v1/employee", employeeRoutes);
 app.get("/", async (req, res, next) => {
   res.send("hello from server");
 });

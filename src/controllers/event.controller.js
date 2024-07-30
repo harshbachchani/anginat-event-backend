@@ -15,32 +15,19 @@ const registerEvent = asyncHandler(async (req, res, next) => {
       eventTemplate,
       attendieType,
     } = req.body;
-    console.log(eventName);
-    console.log(isPaid);
-    console.log(address);
-    console.log(startDate);
-    console.log(endDate);
-    console.log(userJourney);
-    console.log(eventTemplate);
-    console.log(attendieType);
-
-    // if (
-    //   !eventName ||
-    //   !isPaid ||
-    //   !address ||
-    //   !startDate ||
-    //   !endDate ||
-    //   !userJourney ||
-    //   !eventTemplate ||
-    //   !attendieType
-    // ) {
-    //   return next(
-    //     new ApiError(
-    //       400,
-    //       "All fields are required. Please provide valid event details."
-    //     )
-    //   );
-    // }
+    const fields = [
+      eventName,
+      isPaid,
+      address,
+      startDate,
+      endDate,
+      userJourney,
+      eventTemplate,
+      attendieType,
+    ];
+    if (fields.some((field) => field === undefined)) {
+      return next(new ApiError(400, "All fields are required"));
+    }
     if (!Date.parse(startDate) || !Date.parse(endDate)) {
       return next(new ApiError(400, "Invalid date formats"));
     }
@@ -170,7 +157,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
     if (!event) {
       return next(new ApiError(404, "Event Not Found"));
     }
-    const updateinfo = {};
+    let updateinfo = {};
 
     const {
       eventName,
@@ -183,7 +170,7 @@ const updateEvent = asyncHandler(async (req, res, next) => {
       attendieType,
     } = req.body;
     if (eventName) updateinfo["eventName"] = eventName;
-    if (isPaid) updateinfo["isPaid"] = Boolean(isPaid);
+    if (isPaid !== undefined) updateinfo["isPaid"] = Boolean(isPaid);
     if (address) updateinfo["address"] = address;
     if (startDate) {
       updateinfo["startDate"] = new Date(startDate);
