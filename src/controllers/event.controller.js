@@ -15,7 +15,7 @@ const registerEvent = asyncHandler(async (req, res, next) => {
       eventTemplate,
       attendieType,
     } = req.body;
-
+    console.log(req.body);
     if (
       !(
         eventName &&
