@@ -4,10 +4,9 @@ const errHandler = (err, req, res, next) => {
   if (err instanceof ApiError) {
     return res.status(err.statuscode).json({
       success: err.success,
-      statusCode: err.statusCode,
+      statusCode: err.statuscode,
       message: err.message,
       errors: err.errors,
-      detail: "No detail is provided ",
     });
   }
 
