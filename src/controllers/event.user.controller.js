@@ -15,8 +15,10 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
     const { eventId } = req.params;
     if (!eventId) return next(new ApiError(400, "Event Id is required"));
     const { formValues } = req.body;
+    console.log(formValues);
     let { modeOfRegistration } = req.body;
     console.log(req.body);
+    console.log(modeOfRegistration);
     if (!formValues)
       return next(new ApiError(400, "FormValue Field is required"));
     modeOfRegistration = modeOfRegistration || "ONLINE";
@@ -28,6 +30,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(404, "Cannot get eventdetails as per given eventId")
       );
+    console.log(eventDetail);
     let phoneNo =
       formValues["phone_input_0A6EEDDB-E0D5-4BC7-8D4B-CF2D4896B786"];
     const email =
@@ -51,16 +54,17 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
     if (!emailRegex.test(email)) {
       return next(new ApiError(400, "Invalid email format."));
     }
+
     phoneNo = phoneNo.toString();
     if (phoneNo.at(0) === "0") {
       phoneNo = phoneNo.substring(1, phoneNo.length);
     }
-
     const existerUser = await prisma.eventRegistration.findFirst({
       where: {
         AND: [{ eventId: eventDetail.id }, { phoneNo }],
       },
     });
+    console.log(existerUser);
     if (existerUser) {
       return next(new ApiError(409, "User Already registered in the event"));
     }
