@@ -248,6 +248,7 @@ const getAllEventRegsiteredUser = asyncHandler(async (req, res, next) => {
         formValues: true,
       },
     });
+    console.log(eventRegisteredUsers);
     if (!eventRegisteredUsers.length)
       return next(
         new ApiResponse(404, "No registered users found for this event")
@@ -259,7 +260,7 @@ const getAllEventRegsiteredUser = asyncHandler(async (req, res, next) => {
         new ApiResponse(200, eventRegisteredUsers, "Users fetched successfully")
       );
   } catch (error) {
-    return next(new ApiError(500, "Internal Server Error"));
+    return next(new ApiError(500, "Internal Server Error", error));
   }
 });
 export {
