@@ -251,7 +251,7 @@ const getAllEventRegsiteredUser = asyncHandler(async (req, res, next) => {
     console.log(eventRegisteredUsers);
     if (!eventRegisteredUsers.length)
       return next(
-        new ApiResponse(404, "No registered users found for this event")
+        new ApiError(404, "No registered users found for this event")
       );
 
     return res
