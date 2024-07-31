@@ -14,9 +14,10 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const { eventId } = req.params;
     if (!eventId) return next(new ApiError(400, "Event Id is required"));
-    const { formValues } = req.body;
+    const { formValues, modeOfRegistration } = req.body;
     if (!formValues)
       return next(new ApiError(400, "FormValue Field is required"));
+    if (!modeOfRegistration) modeOfRegistration = "ONLINE";
     const eventDetail = await prisma.event.findUnique({
       where: { id: parseInt(eventId) },
     });
@@ -65,6 +66,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
         eventId: eventDetail.id,
         userName: userName,
         phoneNo: phoneNo,
+        modeOfRegistration,
         email: email,
         formValues: formValues,
       },

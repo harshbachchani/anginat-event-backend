@@ -248,7 +248,6 @@ const getAllEventRegsiteredUser = asyncHandler(async (req, res, next) => {
         formValues: true,
       },
     });
-    console.log(eventRegisteredUsers);
     if (!eventRegisteredUsers.length)
       return next(
         new ApiError(404, "No registered users found for this event")
