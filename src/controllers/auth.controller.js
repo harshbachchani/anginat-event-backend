@@ -51,12 +51,16 @@ const registerWithEmail = asyncHandler(async (req, res, next) => {
 const verifyEmail = asyncHandler(async (req, res, next) => {
   try {
     const { token } = req.params;
-    const decodedtoken = await jwt.verify(
-      token,
-      process.env.EMAIL_VERIFICATION_SECRET
-    );
-    if (!decodedtoken)
-      return next(new ApiError(400, "Token Expired or invalid"));
+    let decodedtoken;
+    try {
+      decodedtoken = await jwt.verify(
+        token,
+        process.env.EMAIL_VERIFICATION_SECRET
+      );
+    } catch (err) {
+      return next(new ApiError(400, "Token Expired Or Invalid", err));
+    }
+
     return res.redirect(
       `https://event-frontend-omega.vercel.app/signup1?token=${encodeURIComponent(token)}`
     );
