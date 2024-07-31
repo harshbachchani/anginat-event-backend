@@ -16,84 +16,160 @@ const cookieOptions = {
   secure: true,
   sameSite: "None",
 };
+
+const generateVerificationToken = async (email, password) => {
+  const payload = { email, password };
+  return await jwt.sign(payload, process.env.EMAIL_VERIFICATION_SECRET, {
+    expiresIn: process.env.EMAIL_VERIFICATION_EXPIRY,
+  });
+};
 const registerWithEmail = asyncHandler(async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!(email && password))
       return next(new ApiError(400, "email and password are required"));
-    const hashedPassword = await bcrypt.hash(password, 10);
     const existeduser = await prisma.admin.findUnique({ where: { email } });
     if (existeduser)
       return next(new ApiError(409, "User already exist with the same email"));
-    const myuser = await prisma.admin.create({
-      data: {
-        email,
-        password: hashedPassword,
-      },
+    const verificationToken = await generateVerificationToken(email, password);
+    const verfiyurl = `https://anginat-event-backend.onrender.com/api/v1/auth/verify/${verificationToken}`;
+    const message = `You are receiving this email for verifying email address. Please click of the following link, or paste this into your browser to complete the verfication process within one hour of receiving it:\n\n${verfiyurl}`;
+    await sendEmail({
+      email: email,
+      subject: "Verify Email",
+      message,
     });
-
-    const createduser = await prisma.admin.findUnique({
-      where: { email },
-      select: { id: true, email: true },
-    });
-
-    if (!createduser)
-      return next(
-        new ApiError(500, "Something went wrong while registering user")
-      );
-
     return res
-      .status(201)
-      .json(new ApiResponse(201, createduser, "User registered successfully"));
+      .status(200)
+      .json(
+        new ApiResponse(200, {}, "Verification link has been sent to email")
+      );
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
 });
-
+const verifyEmail = asyncHandler(async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const decodedtoken = await jwt.verify(
+      token,
+      process.env.EMAIL_VERIFICATION_SECRET
+    );
+    if (!decodedtoken)
+      return next(new ApiError(400, "Token Expired or invalid"));
+    return res.redirect(
+      `https://event-frontend-omega.vercel.app/signup1?token=${encodeURIComponent(token)}`
+    );
+  } catch (err) {
+    return next(new ApiError(500, "Internal Server Error", err));
+  }
+});
 const fullRegisteration = asyncHandler(async (req, res, next) => {
   try {
-    const { userId, companyName, phoneNo } = req.body;
-    if (!(userId && companyName && phoneNo))
-      return next(new ApiError(400, "All fields are required"));
-    const myuser = await prisma.admin.findUnique({
-      where: { id: parseInt(userId) },
-    });
-    if (!myuser) return next(new ApiError(404, "User not found"));
-    if (myuser.companyName && myuser.phoneNo)
+    const { userId, token, companyName, phoneNo } = req.body;
+    if (!companyName || !phoneNo)
       return next(
-        new ApiError(400, "User already, Registered Please login directly")
+        new ApiError(400, "Company name and Phone Number is required")
       );
-    const existingusers = await prisma.admin.findMany({
-      where: { phoneNo },
-    });
-    if (existingusers.length > 0)
-      return next(new ApiError(409, "Phone no already in use"));
-    const accessToken = await generateAccessToken(myuser);
-    const refreshToken = await generateRefreshToken(myuser);
-    if (!(accessToken && refreshToken))
-      return next(new ApiError(500, "Error generating tokens"));
+    if (!token && userId) {
+      return next(new ApiError(400, "Token or UserId is required"));
+    }
+    if (userId) {
+      const myuser = await prisma.admin.findUnique({
+        where: { id: parseInt(userId) },
+      });
+      if (!myuser) return next(new ApiError(404, "User not found"));
+      if (myuser.companyName && myuser.phoneNo)
+        return next(
+          new ApiError(400, "User already, Registered Please login directly")
+        );
+      const existinguser = await prisma.admin.findFirst({
+        where: { phoneNo },
+      });
+      if (existinguser)
+        return next(new ApiError(409, "Phone no already in use"));
+      const accessToken = await generateAccessToken(myuser);
+      const refreshToken = await generateRefreshToken(myuser);
+      if (!(accessToken && refreshToken))
+        return next(new ApiError(500, "Error generating tokens"));
+      const user = await prisma.admin.update({
+        where: { id: Number(userId) },
+        data: {
+          companyName,
+          phoneNo,
+          refreshToken,
+        },
+      });
+      if (!user) return next(new ApiError(500, "Error updating user"));
+      res.cookie("accessToken", accessToken, cookieOptions);
+      res.cookie("refreshToken", refreshToken, cookieOptions);
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            { user, accessToken },
+            "User Full registration completed successfully"
+          )
+        );
+    }
+    if (token) {
+      let decodedtoken;
+      try {
+        decodedtoken = await jwt.verify(
+          token,
+          process.env.EMAIL_VERIFICATION_SECRET
+        );
+      } catch (err) {
+        return next(new ApiError(400, "Token expired or invalid"));
+      }
+      const { email, password } = decodedtoken;
+      const existeduser = await prisma.admin.findUnique({
+        where: { email },
+      });
+      if (existeduser)
+        return next(
+          new ApiError(
+            409,
+            "User already exists with same email login directly "
+          )
+        );
+      const existinguser = await prisma.admin.findFirst({
+        where: { phoneNo },
+      });
+      if (existinguser)
+        return next(new ApiError(409, "Phone no already in use"));
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-    const updateduser = await prisma.admin.update({
-      where: { id: Number(userId) },
-      data: {
-        companyName,
-        phoneNo,
-        refreshToken,
-      },
-    });
-    if (!updateduser) return next(new ApiError(500, "Error updating user"));
-    const { password, ...user } = updateduser;
-    res.cookie("accessToken", accessToken, cookieOptions);
-    res.cookie("refreshToken", refreshToken, cookieOptions);
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          { user, accessToken },
-          "User Full registeration completed successfully"
-        )
-      );
+      const user = await prisma.admin.create({
+        data: {
+          email,
+          password: hashedPassword,
+          companyName,
+          phoneNo,
+        },
+      });
+      if (!user) return next(new ApiError(500, "Error creating user"));
+      const accessToken = await generateAccessToken(user);
+      const refreshToken = await generateRefreshToken(user);
+      if (!(accessToken && refreshToken))
+        return next(new ApiError(500, "Error generating tokens"));
+      await prisma.admin.update({
+        where: { id: parseInt(user.id) },
+        data: { refreshToken },
+      });
+      res.cookie("accessToken", accessToken, cookieOptions);
+      res.cookie("refreshToken", refreshToken, cookieOptions);
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            { user, accessToken },
+            "User Full registration completed successfully"
+          )
+        );
+    }
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }
@@ -372,5 +448,6 @@ export {
   checkTokenValidity,
   changePassword,
   logoutUser,
+  verifyEmail,
   googleCheck,
 };
