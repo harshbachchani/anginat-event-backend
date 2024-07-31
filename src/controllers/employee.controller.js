@@ -50,13 +50,13 @@ const registerEmployee = asyncHandler(async (req, res, next) => {
 
 const assignEvent = asyncHandler(async (req, res, next) => {
   try {
-    const { empId, eventId } = req.body;
+    const { eventId } = req.params;
+    if (!eventId) return next(new ApiError(400, "Event Id is required"));
     const existedEvent = await prisma.event.findUnique({
       where: { id: parseInt(eventId) },
     });
     if (!existedEvent)
       return next(new ApiError(404, "Event not found with given event Id"));
-
     if (existedEvent.adminId != req.user?.id) {
       return next(
         new ApiError(
@@ -65,26 +65,57 @@ const assignEvent = asyncHandler(async (req, res, next) => {
         )
       );
     }
-    const alreadyassigned = await prisma.eventAssignment.findFirst({
-      where: {
-        AND: [{ employeeId: parseInt(empId) }, { eventId: parseInt(eventId) }],
-      },
-    });
-    if (alreadyassigned)
-      return next(new ApiError(400, "Employee already assigned to the event"));
-    const assignemp = await prisma.eventAssignment.create({
-      data: {
-        employeeId: parseInt(empId),
-        eventId: parseInt(eventId),
-        role: "Employee",
-      },
-    });
-    if (!assignemp)
-      return next(new ApiError(500, "Error assigning event to the employee"));
+    const { employees } = req.body;
+    console.log(req.body);
+    if (!employees) return next(new ApiError(400, "Employee Ids are required"));
+    console.log(employees);
+    let data;
+    try {
+      data = JSON.parse(employees);
+      console.log(data);
+    } catch (error) {
+      return next(new ApiError(400, "Invalid JSON for employees Id", error));
+    }
+    let assignmentResult = [];
+    for (let empId of data) {
+      const employeeExists = await prisma.employee.findUnique({
+        where: { id: parseInt(empId) },
+      });
+      if (!employeeExists) {
+        assignmentResult.push({ empId, status: "Employee Not Found" });
+        continue;
+      }
+
+      // check if
+      const existingassignment = await prisma.eventAssignment.findUnique({
+        where: {
+          employeeId_eventId: {
+            employeeId: parseInt(empId),
+            eventId: parseInt(eventId),
+          },
+        },
+      });
+      if (existingassignment) {
+        assignmentResult.push({ empId, status: "Already Assigned" });
+      }
+
+      //create the assingment
+      const newAssingment = await prisma.eventAssignment.create({
+        data: {
+          eventId: parseInt(eventId),
+          employeeId: parseInt(empId),
+        },
+      });
+      assignmentResult.push({ empId, status: "Assigned", newAssingment });
+    }
     return res
       .status(201)
       .json(
-        new ApiResponse(201, {}, "Event assigned to employee successfully")
+        new ApiResponse(
+          201,
+          assignmentResult,
+          "Employees Processed Successfully"
+        )
       );
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));

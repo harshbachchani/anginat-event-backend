@@ -17,8 +17,6 @@ router
   .put(verifyJWT, updateEmployee)
   .delete(verifyJWT, deleteEmployee);
 router.route("/").get(verifyJWT, getAllEmployee);
-router
-  .route("/event")
-  .get(verifyJWT, getEmployeesByEventId)
-  .post(verifyJWT, assignEvent);
+router.route("/event").get(verifyJWT, getEmployeesByEventId);
+router.route("/event/:eventId").post(verifyJWT, assignEvent);
 export default router;
