@@ -93,7 +93,7 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
         phoneNo: phoneNo,
         modeOfRegistration,
         email: email,
-        formValues: formValues,
+        formValues: parsedformValues,
       },
     });
     console.log(userDetail);
