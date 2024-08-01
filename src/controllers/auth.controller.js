@@ -71,25 +71,32 @@ const verifyEmail = asyncHandler(async (req, res, next) => {
 const fullRegisteration = asyncHandler(async (req, res, next) => {
   try {
     const { userId, token, companyName, phoneNo } = req.body;
+    console.log("Hello1");
     if (!companyName || !phoneNo)
       return next(
         new ApiError(400, "Company name and Phone Number is required")
       );
+    console.log("Hello2");
     if (!token && userId) {
+      console.log("Not should be here");
       return next(new ApiError(400, "Token or UserId is required"));
     }
+    console.log("Hello3");
     if (userId) {
+      console.log("Hello4");
       const myuser = await prisma.admin.findUnique({
         where: { id: parseInt(userId) },
       });
       if (!myuser) return next(new ApiError(404, "User not found"));
-      if (myuser.companyName && myuser.phoneNo)
+      console.log(`existing user is ${myuser}`);
+      if (myuser.companyName !== null && myuser.phoneNo !== null)
         return next(
           new ApiError(400, "User already, Registered Please login directly")
         );
       const existinguser = await prisma.admin.findFirst({
         where: { phoneNo },
       });
+      console.log(`existing user is ${existinguser}`);
       if (existinguser)
         return next(new ApiError(409, "Phone no already in use"));
       const accessToken = await generateAccessToken(myuser);
@@ -97,16 +104,18 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
       if (!(accessToken && refreshToken))
         return next(new ApiError(500, "Error generating tokens"));
       const user = await prisma.admin.update({
-        where: { id: Number(userId) },
+        where: { id: parseInt(userId) },
         data: {
           companyName,
           phoneNo,
           refreshToken,
         },
       });
+      console.log(user);
       if (!user) return next(new ApiError(500, "Error updating user"));
       res.cookie("accessToken", accessToken, cookieOptions);
       res.cookie("refreshToken", refreshToken, cookieOptions);
+      console.log("Hii from last");
       return res
         .status(200)
         .json(
@@ -120,10 +129,7 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
     if (token) {
       let decodedtoken;
       try {
-        decodedtoken = await jwt.verify(
-          token,
-          process.env.EMAIL_VERIFICATION_SECRET
-        );
+        decodedtoken = jwt.verify(token, process.env.EMAIL_VERIFICATION_SECRET);
       } catch (err) {
         return next(new ApiError(400, "Token expired or invalid"));
       }
@@ -158,7 +164,7 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
       const refreshToken = await generateRefreshToken(user);
       if (!(accessToken && refreshToken))
         return next(new ApiError(500, "Error generating tokens"));
-      await prisma.admin.update({
+      const updatedUser = await prisma.admin.update({
         where: { id: parseInt(user.id) },
         data: { refreshToken },
       });
@@ -169,7 +175,7 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
         .json(
           new ApiResponse(
             200,
-            { user, accessToken },
+            { user: updatedUser, accessToken },
             "User Full registration completed successfully"
           )
         );
@@ -213,7 +219,13 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
     res.cookie("refreshToken", refreshToken, cookieOptions);
     return res
       .status(200)
-      .json(new ApiResponse(200, user, "User logged in successfully"));
+      .json(
+        new ApiResponse(
+          200,
+          { user, accessToken },
+          "User logged in successfully"
+        )
+      );
   } catch (error) {
     return next(new ApiError(500, "Internal Server Error", error));
   }

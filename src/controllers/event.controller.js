@@ -95,7 +95,7 @@ const getAllCreatedEvents = asyncHandler(async (req, res, next) => {
       where: { adminId: user.id, status },
     });
     if (!events || !events.length)
-      return next(new ApiError(404, "Error in fetching events "));
+      return next(new ApiError(404, "No Events Found"));
     for (let event of events) {
       event.eventTemplate = JSON.stringify(event.eventTemplate);
     }
