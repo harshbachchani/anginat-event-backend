@@ -77,7 +77,7 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
         new ApiError(400, "Company name and Phone Number is required")
       );
     console.log("Hello2");
-    if (!token && userId) {
+    if (!token && !userId) {
       console.log("Not should be here");
       return next(new ApiError(400, "Token or UserId is required"));
     }
