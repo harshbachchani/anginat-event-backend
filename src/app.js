@@ -24,7 +24,10 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
-
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Expose-Headers", "accessToken, refreshToken");
+  next();
+});
 app.use(
   express.json({
     limit: "64KB",
