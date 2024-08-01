@@ -79,12 +79,11 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
       return next(new ApiError(400, "Token or UserId is required"));
     }
     if (userId) {
-      console.log("Hello4");
       const myuser = await prisma.admin.findUnique({
         where: { id: parseInt(userId) },
       });
       if (!myuser) return next(new ApiError(404, "User not found"));
-      console.log(`existing user is ${myuser}`);
+
       if (myuser.companyName !== null && myuser.phoneNo !== null)
         return next(
           new ApiError(400, "User already, Registered Please login directly")
@@ -92,7 +91,7 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
       const existinguser = await prisma.admin.findFirst({
         where: { phoneNo },
       });
-      console.log(`existing user is ${existinguser}`);
+
       if (existinguser)
         return next(new ApiError(409, "Phone no already in use"));
       const accessToken = await generateAccessToken(myuser);
@@ -107,11 +106,12 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
           refreshToken,
         },
       });
-      console.log(user);
+
       if (!user) return next(new ApiError(500, "Error updating user"));
       res.cookie("accessToken", accessToken, cookieOptions);
       res.cookie("refreshToken", refreshToken, cookieOptions);
-      console.log("Hii from last");
+      res.setHeader("accessToken", accessToken);
+      res.setHeader("refreshToken", refreshToken);
       return res
         .status(200)
         .json(
@@ -166,6 +166,8 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
       });
       res.cookie("accessToken", accessToken, cookieOptions);
       res.cookie("refreshToken", refreshToken, cookieOptions);
+      res.setHeader("accessToken", accessToken);
+      res.setHeader("refreshToken", refreshToken);
       return res
         .status(200)
         .json(
@@ -213,6 +215,8 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
     });
     res.cookie("accessToken", accessToken, cookieOptions);
     res.cookie("refreshToken", refreshToken, cookieOptions);
+    res.setHeader("accessToken", accessToken);
+    res.setHeader("refreshToken", refreshToken);
     return res
       .status(200)
       .json(
@@ -229,7 +233,8 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
 
 const refreshAccessToken = asyncHandler(async (req, res, next) => {
   try {
-    const { refreshToken } = req.cookies || req.body;
+    const { refreshToken } =
+      req.cookies || req.header("refreshToken") || req.body;
     if (!refreshToken)
       return next(new ApiError(400, "Refresh Token is required"));
     let decodedtoken;
@@ -252,6 +257,7 @@ const refreshAccessToken = asyncHandler(async (req, res, next) => {
     if (!accessToken)
       return next(new ApiError(500, "Error generating access token"));
     res.cookie("accessToken", accessToken, cookieOptions);
+    res.setHeader("accessToken", accessToken);
     return res
       .status(200)
       .json(
@@ -324,7 +330,8 @@ const checkTokenValidity = asyncHandler(async (req, res, next) => {
     const accessToken =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken =
+      req.cookies?.refreshToken || req.header("refreshToken");
     if (!(accessToken || refreshToken))
       return next(new ApiError(401, "Unauthorized request"));
     const decodedaccesstoken = jwt.verify(
@@ -345,6 +352,8 @@ const checkTokenValidity = asyncHandler(async (req, res, next) => {
       const newaccessToken = await generateAccessToken(user);
       res.cookie("accessToken", newaccessToken, cookieOptions);
       res.cookie("refreshToken", refreshToken, cookieOptions);
+      res.setHeader("accessToken", accessToken);
+      res.setHeader("refreshToken", refreshToken);
       return res
         .status(201)
         .json(new ApiResponse(200, user, "User Verified Successfully"));
@@ -353,6 +362,8 @@ const checkTokenValidity = asyncHandler(async (req, res, next) => {
       where: { id: decodedaccesstoken?.id },
     });
     if (!user) return next(new ApiError(401, "Invalid Access Token"));
+    res.setHeader("accessToken", accessToken);
+    res.setHeader("refreshToken", refreshToken);
     return res
       .status(201)
       .json(new ApiResponse(200, user, "User Verified Successfully"));
@@ -403,6 +414,8 @@ const googleCheck = asyncHandler(async (req, res) => {
       const refreshToken = await generateRefreshToken(user);
       res.cookie("accessToken", accessToken, cookieOptions);
       res.cookie("refreshToken", refreshToken, cookieOptions);
+      res.setHeader("accessToken", accessToken);
+      res.setHeader("refreshToken", refreshToken);
       return res.redirect("https://event-frontend-omega.vercel.app/dashboard");
     } else {
       return res.redirect(
