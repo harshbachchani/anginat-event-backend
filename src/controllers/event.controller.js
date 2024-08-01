@@ -31,10 +31,14 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     if (!Date.parse(startDate) || !Date.parse(endDate)) {
       return next(new ApiError(400, "Invalid date formats"));
     }
-    if (new Date(startDate) < new Date())
-      return next(
-        new ApiError(400, "Event Start date should be greater then today'date")
-      );
+    console.log(`Start date is :${startDate}`);
+    console.log(`End date is :${endDate}`);
+    console.log(`Type of start date is :${typeof startDate}`);
+    console.log(`Type of End date is :${typeof endDate}`);
+    // if (new Date(startDate) < new Date())
+    //   return next(
+    //     new ApiError(400, "Event Start date should be greater then today'date")
+    //   );
 
     let parsedEventTemplate;
     try {
@@ -60,8 +64,8 @@ const registerEvent = asyncHandler(async (req, res, next) => {
         eventName,
         isPaid: Boolean(isPaid),
         address,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
+        startDate: startDate,
+        endDate: endDate,
         userJourney: parsedUserJourney,
         eventTemplate: parsedEventTemplate,
         attendieType: parsedAttendieType,
