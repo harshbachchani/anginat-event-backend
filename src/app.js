@@ -1,9 +1,7 @@
 import { createServer } from "http";
 import express from "express";
 import cors from "cors";
-import prisma from "./db/config.js";
 import passport from "passport";
-import path from "path";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 const app = express();
@@ -14,15 +12,15 @@ import { errHandler } from "./middlewares/err.middleware.js";
 
 const corsOptions = {
   origin: process.env.CORS_ORIGIN,
-  // credentials: true,
-  // allowedHeaders: [
-  //   "Content-Type",
-  //   "Authorization",
-  //   "Accept",
-  //   "Origin",
-  //   "X-Requested-With",
-  //   "Cache-Control",
-  // ],
+  credentials: true,
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Accept",
+    "Origin",
+    "X-Requested-With",
+    "Cache-Control",
+  ],
 };
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
