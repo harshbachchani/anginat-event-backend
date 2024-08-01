@@ -71,17 +71,13 @@ const verifyEmail = asyncHandler(async (req, res, next) => {
 const fullRegisteration = asyncHandler(async (req, res, next) => {
   try {
     const { userId, token, companyName, phoneNo } = req.body;
-    console.log("Hello1");
     if (!companyName || !phoneNo)
       return next(
         new ApiError(400, "Company name and Phone Number is required")
       );
-    console.log("Hello2");
     if (!token && !userId) {
-      console.log("Not should be here");
       return next(new ApiError(400, "Token or UserId is required"));
     }
-    console.log("Hello3");
     if (userId) {
       console.log("Hello4");
       const myuser = await prisma.admin.findUnique({
