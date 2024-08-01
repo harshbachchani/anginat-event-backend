@@ -108,8 +108,6 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
       });
 
       if (!user) return next(new ApiError(500, "Error updating user"));
-      res.cookie("accessToken", accessToken, cookieOptions);
-      res.cookie("refreshToken", refreshToken, cookieOptions);
       res.setHeader("accessToken", accessToken);
       res.setHeader("refreshToken", refreshToken);
       return res
@@ -164,8 +162,6 @@ const fullRegisteration = asyncHandler(async (req, res, next) => {
         where: { id: parseInt(user.id) },
         data: { refreshToken },
       });
-      res.cookie("accessToken", accessToken, cookieOptions);
-      res.cookie("refreshToken", refreshToken, cookieOptions);
       res.setHeader("accessToken", accessToken);
       res.setHeader("refreshToken", refreshToken);
       return res
@@ -213,8 +209,6 @@ const loginWithEmail = asyncHandler(async (req, res, next) => {
       where: { id: myuser.id },
       data: { refreshToken },
     });
-    res.cookie("accessToken", accessToken, cookieOptions);
-    res.cookie("refreshToken", refreshToken, cookieOptions);
     res.setHeader("accessToken", accessToken);
     res.setHeader("refreshToken", refreshToken);
     return res
@@ -256,7 +250,6 @@ const refreshAccessToken = asyncHandler(async (req, res, next) => {
     const accessToken = await generateAccessToken(myuser);
     if (!accessToken)
       return next(new ApiError(500, "Error generating access token"));
-    res.cookie("accessToken", accessToken, cookieOptions);
     res.setHeader("accessToken", accessToken);
     return res
       .status(200)
@@ -350,9 +343,7 @@ const checkTokenValidity = asyncHandler(async (req, res, next) => {
       });
       if (!user) return next(new ApiError(401, "Invalid refresh Token"));
       const newaccessToken = await generateAccessToken(user);
-      res.cookie("accessToken", newaccessToken, cookieOptions);
-      res.cookie("refreshToken", refreshToken, cookieOptions);
-      res.setHeader("accessToken", accessToken);
+      res.setHeader("accessToken", newaccessToken);
       res.setHeader("refreshToken", refreshToken);
       return res
         .status(201)
@@ -412,8 +403,6 @@ const googleCheck = asyncHandler(async (req, res) => {
     if (user.phoneNo) {
       const accessToken = await generateAccessToken(user);
       const refreshToken = await generateRefreshToken(user);
-      res.cookie("accessToken", accessToken, cookieOptions);
-      res.cookie("refreshToken", refreshToken, cookieOptions);
       res.setHeader("accessToken", accessToken);
       res.setHeader("refreshToken", refreshToken);
       return res.redirect("https://event-frontend-omega.vercel.app/dashboard");
