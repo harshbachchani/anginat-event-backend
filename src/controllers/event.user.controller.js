@@ -16,9 +16,8 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
     if (!eventId) return next(new ApiError(400, "Event Id is required"));
     const { formValues } = req.body;
     console.log(formValues);
+    console.log(typeof formValues);
     let { modeOfRegistration } = req.body;
-    console.log(req.body);
-    console.log(modeOfRegistration);
     if (!formValues)
       return next(new ApiError(400, "FormValue Field is required"));
     modeOfRegistration = modeOfRegistration || "ONLINE";
@@ -30,13 +29,32 @@ const userEventRegistration = asyncHandler(async (req, res, next) => {
       return next(
         new ApiError(404, "Cannot get eventdetails as per given eventId")
       );
-    console.log(eventDetail);
-    let phoneNo =
-      formValues["phone_input_0A6EEDDB-E0D5-4BC7-8D4B-CF2D4896B786"];
-    const email =
-      formValues["email_input_A4A11559-34CB-4A95-BB86-E89C8CABE06C"];
-    const userName =
-      formValues["text_input_103DC733-9828-4C8D-BDD5-E2BCDD96D92A"];
+    let parsedformValues;
+    try {
+      parsedformValues = JSON.parse(formValues);
+    } catch (error) {
+      return next(new ApiError(400, "Invalid JSON for Form Values", error));
+    }
+    console.log(parsedformValues);
+    console.log(typeof parsedformValues);
+    let phoneNo, email, userName;
+
+    Object.keys(parsedformValues).forEach((key) => {
+      switch (parsedformValues[key].name) {
+        case "phone_input_0A6EEDDB-E0D5-4BC7-8D4B-CF2D4896B786":
+          phoneNo = parsedformValues[key].value;
+          break;
+        case "email_input_A4A11559-34CB-4A95-BB86-E89C8CABE06C":
+          email = parsedformValues[key].value;
+          break;
+        case "text_input_103DC733-9828-4C8D-BDD5-E2BCDD96D92A":
+          userName = parsedformValues[key].value;
+          break;
+        default:
+          break;
+      }
+    });
+
     if (!(userName && email && phoneNo))
       return next(new ApiResponse(400, "Cannot get required fields"));
     if (userName.length == 0 || email.length == 0 || phoneNo.length == 0)
