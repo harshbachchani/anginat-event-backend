@@ -14,15 +14,15 @@ import { errHandler } from "./middlewares/err.middleware.js";
 
 const corsOptions = {
   origin: process.env.CORS_ORIGIN,
-  credentials: true,
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "Accept",
-    "Origin",
-    "X-Requested-With",
-    "Cache-Control",
-  ],
+  // credentials: true,
+  // allowedHeaders: [
+  //   "Content-Type",
+  //   "Authorization",
+  //   "Accept",
+  //   "Origin",
+  //   "X-Requested-With",
+  //   "Cache-Control",
+  // ],
 };
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
