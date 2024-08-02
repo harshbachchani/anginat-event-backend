@@ -26,6 +26,18 @@ app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Expose-Headers", "accessToken, refreshToken");
+  console.log(`header is : ${req.header}`);
+  console.log(`headers is : ${req.headers}`);
+  if (req.header) {
+    for (const [key, value] of Object.entries(req.header)) {
+      console.log(`${key}: ${value}`);
+    }
+  }
+  if (req.headers) {
+    for (const [key, value] of Object.entries(req.headers)) {
+      console.log(`${key}: ${value}`);
+    }
+  }
   next();
 });
 app.use(
