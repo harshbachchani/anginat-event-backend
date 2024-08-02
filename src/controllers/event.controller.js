@@ -243,14 +243,6 @@ const getAllEventRegsiteredUser = asyncHandler(async (req, res, next) => {
     if (!event) return next(new ApiError(404, "Event Not Found"));
     const eventRegisteredUsers = await prisma.eventRegistration.findMany({
       where: { eventId: parseInt(eventId) },
-      select: {
-        id: true,
-        userName: true,
-        phoneNo: true,
-        email: true,
-        modeOfRegistration: true,
-        formValues: true,
-      },
     });
     if (!eventRegisteredUsers.length)
       return next(
