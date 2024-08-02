@@ -357,8 +357,8 @@ const checkTokenValidity = asyncHandler(async (req, res, next) => {
     });
     if (!user) return next(new ApiError(401, "Invalid Access Token"));
     console.log("here");
-    res.setHeader("accessToken", accessToken);
-    res.setHeader("refreshToken", refreshToken);
+    // res.setHeader("accessToken", accessToken);
+    // res.setHeader("refreshToken", refreshToken);
     console.log("Now here");
     return res
       .status(201)
