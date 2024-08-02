@@ -319,6 +319,7 @@ const verifyResetToken = asyncHandler(async (req, res, next) => {
 
 const checkTokenValidity = asyncHandler(async (req, res, next) => {
   try {
+    console.log(req.header);
     let user;
     const accessToken =
       req.cookies?.accessToken ||
