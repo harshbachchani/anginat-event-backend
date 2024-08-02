@@ -20,6 +20,7 @@ const corsOptions = {
     "Origin",
     "X-Requested-With",
     "Cache-Control",
+    "refreshToken",
   ],
 };
 app.use(cors(corsOptions));

@@ -319,21 +319,21 @@ const verifyResetToken = asyncHandler(async (req, res, next) => {
 
 const checkTokenValidity = asyncHandler(async (req, res, next) => {
   try {
-    console.log("Received Headers:", req.header("Authorization"));
-    console.log("Received Headers:", req.header("authorization"));
+    console.log(`My refresh token is : ${req.header("refreshToken")}`);
     let user;
     const accessToken =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
     console.log(`My access Token is: ${accessToken}`);
-    // const refreshToken =
-    //   req.cookies?.refreshToken || req.header("refreshToken");
+    const refreshToken =
+      req.cookies?.refreshToken || req.header("refreshToken");
     if (!(accessToken || refreshToken))
       return next(new ApiError(401, "Unauthorized request"));
     const decodedaccesstoken = jwt.verify(
       accessToken,
       process.env.ACCESS_TOKEN_SECRET
     );
+    console.log(`Again the refresh Token is ${refreshToken}`);
     // if (!decodedaccesstoken) {
     //   const decodedrefreshtoken = jwt.verify(
     //     refreshToken,
@@ -356,10 +356,9 @@ const checkTokenValidity = asyncHandler(async (req, res, next) => {
       where: { id: decodedaccesstoken?.id },
     });
     if (!user) return next(new ApiError(401, "Invalid Access Token"));
-    console.log("here");
     // res.setHeader("accessToken", accessToken);
     // res.setHeader("refreshToken", refreshToken);
-    console.log("Now here");
+
     return res
       .status(201)
       .json(new ApiResponse(201, user, "User Verified Successfully"));
