@@ -319,45 +319,50 @@ const verifyResetToken = asyncHandler(async (req, res, next) => {
 
 const checkTokenValidity = asyncHandler(async (req, res, next) => {
   try {
+    console.log("Received Headers:", req.header("Authorization"));
+    console.log("Received Headers:", req.header("authorization"));
     let user;
     const accessToken =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
-    const refreshToken =
-      req.cookies?.refreshToken || req.header("refreshToken");
+    console.log(`My access Token is: ${accessToken}`);
+    // const refreshToken =
+    //   req.cookies?.refreshToken || req.header("refreshToken");
     if (!(accessToken || refreshToken))
       return next(new ApiError(401, "Unauthorized request"));
     const decodedaccesstoken = jwt.verify(
       accessToken,
       process.env.ACCESS_TOKEN_SECRET
     );
-    if (!decodedaccesstoken) {
-      const decodedrefreshtoken = jwt.verify(
-        refreshToken,
-        process.env.REFRESH_TOKEN_SECRET
-      );
-      if (!decodedrefreshtoken)
-        return next(new ApiError(401, "Tokens are expired please login again"));
-      user = await prisma.admin.findUnique({
-        where: { id: decodedaccesstoken?.id },
-      });
-      if (!user) return next(new ApiError(401, "Invalid refresh Token"));
-      const newaccessToken = await generateAccessToken(user);
-      res.setHeader("accessToken", newaccessToken);
-      res.setHeader("refreshToken", refreshToken);
-      return res
-        .status(201)
-        .json(new ApiResponse(200, user, "User Verified Successfully"));
-    }
+    // if (!decodedaccesstoken) {
+    //   const decodedrefreshtoken = jwt.verify(
+    //     refreshToken,
+    //     process.env.REFRESH_TOKEN_SECRET
+    //   );
+    //   if (!decodedrefreshtoken)
+    //     return next(new ApiError(401, "Tokens are expired please login again"));
+    //   user = await prisma.admin.findUnique({
+    //     where: { id: decodedaccesstoken?.id },
+    //   });
+    //   if (!user) return next(new ApiError(401, "Invalid refresh Token"));
+    //   const newaccessToken = await generateAccessToken(user);
+    //   res.setHeader("accessToken", newaccessToken);
+    //   res.setHeader("refreshToken", refreshToken);
+    //   return res
+    //     .status(201)
+    //     .json(new ApiResponse(201, user, "User Verified Successfully"));
+    // }
     user = await prisma.admin.findUnique({
       where: { id: decodedaccesstoken?.id },
     });
     if (!user) return next(new ApiError(401, "Invalid Access Token"));
+    console.log("here");
     res.setHeader("accessToken", accessToken);
     res.setHeader("refreshToken", refreshToken);
+    console.log("Now here");
     return res
       .status(201)
-      .json(new ApiResponse(200, user, "User Verified Successfully"));
+      .json(new ApiResponse(201, user, "User Verified Successfully"));
   } catch (err) {
     return next(new ApiError(500, "Internal Server Error", err));
   }
