@@ -324,10 +324,8 @@ const checkTokenValidity = asyncHandler(async (req, res, next) => {
     const accessToken =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
-    console.log(`My access Token is: ${accessToken}`);
     const refreshToken =
       req.cookies?.refreshToken || req.header("refreshToken");
-    console.log(`Again the refresh Token is ${refreshToken}`);
     if (!(accessToken || refreshToken))
       return next(new ApiError(401, "Unauthorized request"));
     let decodedAccessToken, decodedRefreshToken;
@@ -346,7 +344,6 @@ const checkTokenValidity = asyncHandler(async (req, res, next) => {
           process.env.REFRESH_TOKEN_SECRET
         );
       } catch (err) {
-        console.log("Refresh token verification failed");
         return next(
           new ApiError(401, "Tokens are expired; please log in again")
         );

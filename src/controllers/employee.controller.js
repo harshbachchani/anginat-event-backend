@@ -77,37 +77,74 @@ const assignEvent = asyncHandler(async (req, res, next) => {
       return next(new ApiError(400, "Invalid JSON for employees Id", error));
     }
     let assignmentResult = [];
-    for (let empId of data) {
-      const employeeExists = await prisma.employee.findUnique({
-        where: { id: parseInt(empId) },
-      });
-      if (!employeeExists) {
-        assignmentResult.push({ empId, status: "Employee Not Found" });
-        continue;
-      }
+    for (let ele of data) {
+      const empId = ele.id;
+      if (ele.flag) {
+        const employeeExists = await prisma.employee.findUnique({
+          where: { id: parseInt(empId) },
+        });
+        if (!employeeExists) {
+          assignmentResult.push({ empId, status: "Employee Not Found" });
+          continue;
+        }
 
-      // check if
-      const existingassignment = await prisma.eventAssignment.findUnique({
-        where: {
-          employeeId_eventId: {
-            employeeId: parseInt(empId),
-            eventId: parseInt(eventId),
+        // check if already assigned that event or not
+        const existingassignment = await prisma.eventAssignment.findUnique({
+          where: {
+            employeeId_eventId: {
+              employeeId: parseInt(empId),
+              eventId: parseInt(eventId),
+            },
           },
-        },
-      });
-      if (existingassignment) {
-        assignmentResult.push({ empId, status: "Already Assigned" });
-      }
+        });
+        if (existingassignment) {
+          assignmentResult.push({ empId, status: "Already Assigned" });
+        }
 
-      //create the assingment
-      const newAssingment = await prisma.eventAssignment.create({
-        data: {
-          eventId: parseInt(eventId),
-          employeeId: parseInt(empId),
-        },
-      });
-      assignmentResult.push({ empId, status: "Assigned", newAssingment });
+        //create the assingment
+        const newAssingment = await prisma.eventAssignment.create({
+          data: {
+            eventId: parseInt(eventId),
+            employeeId: parseInt(empId),
+          },
+        });
+        assignmentResult.push({ empId, status: "Assigned", newAssingment });
+      } else {
+        const employeeExists = await prisma.employee.findUnique({
+          where: { id: parseInt(empId) },
+        });
+        if (!employeeExists) {
+          assignmentResult.push({ empId, status: "Employee Not Found" });
+          continue;
+        }
+        // check if already assigned or not
+        const existingassignment = await prisma.eventAssignment.findUnique({
+          where: {
+            employeeId_eventId: {
+              employeeId: parseInt(empId),
+              eventId: parseInt(eventId),
+            },
+          },
+        });
+        if (!existingassignment) {
+          assignmentResult.push({ empId, status: "Event Never Assigned" });
+        }
+        const deleteassigned = await prisma.eventAssignment.delete({
+          where: {
+            employeeId_eventId: {
+              employeeId: parseInt(empId),
+              eventId: parseInt(eventId),
+            },
+          },
+        });
+        assignmentResult.push({
+          empId,
+          status: "Unassigned",
+          newAssingment,
+        });
+      }
     }
+    console.log(assignmentResult);
     return res
       .status(201)
       .json(
