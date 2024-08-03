@@ -79,7 +79,8 @@ const assignEvent = asyncHandler(async (req, res, next) => {
     let assignmentResult = [];
     for (let ele of data) {
       const empId = ele.id;
-      if (ele.flag) {
+      const flag = Boolean(ele.flag);
+      if (flag) {
         const employeeExists = await prisma.employee.findUnique({
           where: { id: parseInt(empId) },
         });
@@ -140,7 +141,6 @@ const assignEvent = asyncHandler(async (req, res, next) => {
         assignmentResult.push({
           empId,
           status: "Unassigned",
-          newAssingment,
         });
       }
     }
