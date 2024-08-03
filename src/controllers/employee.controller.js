@@ -158,8 +158,7 @@ const getAllEmployee = asyncHandler(async (req, res, next) => {
     const employees = await prisma.employee.findMany({
       where: { adminId: parseInt(adminId) },
     });
-    if (!employees || !employees.length)
-      return next(new ApiError(400, "No employees found"));
+    if (!employees.length) return next(new ApiError(404, "No employees found"));
     return res
       .status(200)
       .json(new ApiResponse(200, employees, "Employees fetched successfully"));
@@ -170,8 +169,14 @@ const getAllEmployee = asyncHandler(async (req, res, next) => {
 
 const getEmployeesByEventId = asyncHandler(async (req, res, next) => {
   try {
-    const { eventId } = req.body;
+    const { eventId } = req.params;
+    const adminId = req.user?.id;
+    if (!adminId) return next(new ApiError(404, "Cannot get admin Id"));
     if (isNaN(eventId)) return next(new ApiError(400, "Invalid Event Id"));
+    const data1 = await prisma.employee.findMany({
+      where: { adminId: parseInt(adminId) },
+    });
+    if (!data1.length) return next(new ApiError(404, "No employees found"));
     const result = await prisma.eventAssignment.findMany({
       where: { eventId: parseInt(eventId) },
       include: {
@@ -180,7 +185,17 @@ const getEmployeesByEventId = asyncHandler(async (req, res, next) => {
     });
     if (!result || !result.length)
       return next(new ApiError(400, "No employee found for for this event"));
-    const employees = result.map((result) => result.employee);
+    const data2 = result.map((result) => result.employee);
+    let employees = [];
+    for (let temp of data1) {
+      if (data2.some((emp) => emp.id === temp.id)) {
+        temp.flag = true;
+        employees.push(temp);
+      } else {
+        temp.flag = false;
+        employees.push(temp);
+      }
+    }
     return res
       .status(200)
       .json(

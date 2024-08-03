@@ -22,16 +22,6 @@ async function generateQRForUser(user, event) {
     const data = {
       eventId: event.id,
       userId: user.id,
-      eventName: event.eventName,
-      startDate: event.startDate,
-      endDate: event.endDate,
-      eventImage: event.image,
-      eventCity: event.city,
-      eventAddress: event.address,
-      userName: user.userName,
-      userPhoneNo: user.phoneNo,
-      userEmail: user.email,
-      registrationDate: user.registrationDate,
     };
     const result = await generateQRCode(data);
     if (!result.success) {
