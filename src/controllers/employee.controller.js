@@ -80,6 +80,8 @@ const assignEvent = asyncHandler(async (req, res, next) => {
     for (let ele of data) {
       const empId = ele.id;
       const flag = Boolean(ele.flag);
+      console.log(empId);
+      console.log(flag);
       if (flag) {
         const employeeExists = await prisma.employee.findUnique({
           where: { id: parseInt(empId) },
@@ -127,10 +129,11 @@ const assignEvent = asyncHandler(async (req, res, next) => {
             },
           },
         });
-        if (!existingassignment) {
+        if (existingassignment == null) {
           assignmentResult.push({ empId, status: "Event Never Assigned" });
+          continue;
         }
-        const deleteassigned = await prisma.eventAssignment.delete({
+        await prisma.eventAssignment.delete({
           where: {
             employeeId_eventId: {
               employeeId: parseInt(empId),
