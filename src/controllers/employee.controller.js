@@ -232,8 +232,6 @@ const getEmployeesByEventId = asyncHandler(async (req, res, next) => {
         },
       },
     });
-    if (!result || !result.length)
-      return next(new ApiError(404, "No employee found for for this event"));
     const data2 = result.map((result) => result.employee);
     let employees = [];
     for (let temp of data1) {
