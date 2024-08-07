@@ -30,17 +30,17 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     if (fields.some((field) => field === undefined)) {
       return next(new ApiError(400, "All fields are required"));
     }
-    const designloacalpath = req.files?.buffer;
+    const designloacalpath = req.file?.buffer;
     if (!designloacalpath)
       return next(new ApiError(400, "Cannot get local path of design"));
     if (!Date.parse(startDate) || !Date.parse(endDate)) {
       return next(new ApiError(400, "Invalid date formats"));
     }
 
-    // if (new Date(startDate) < new Date())
-    //   return next(
-    //     new ApiError(400, "Event Start date should be greater then today'date")
-    //   );
+    if (new Date(startDate) < new Date())
+      return next(
+        new ApiError(400, "Event Start date should be greater then today'date")
+      );
 
     let parsedEventTemplate;
     try {
@@ -74,8 +74,8 @@ const registerEvent = asyncHandler(async (req, res, next) => {
         eventName,
         isPaid: Boolean(isPaid),
         address,
-        startDate: startDate,
-        endDate: endDate,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
         design: design.url,
         userJourney: parsedUserJourney,
         eventTemplate: parsedEventTemplate,
