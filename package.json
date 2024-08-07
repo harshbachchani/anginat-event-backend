@@ -15,7 +15,7 @@
   "author": "Harsh Bachchani",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.17.0",
+    "@prisma/client": "^5.18.0",
     "@prisma/extension-accelerate": "^1.1.0",
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
@@ -42,6 +42,6 @@
     "sequelize": "^6.37.3"
   },
   "devDependencies": {
-    "prisma": "^5.17.0"
+    "prisma": "^5.18.0"
   }
 }

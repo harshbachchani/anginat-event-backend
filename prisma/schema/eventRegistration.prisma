@@ -12,6 +12,7 @@ enum PaymentStatus {
 
 model EventRegistration {
     id                 Int              @id @default(autoincrement())
+    userId             Int?
     eventId            Int
     userName           String?
     phoneNo            String?
@@ -22,6 +23,6 @@ model EventRegistration {
     paymentStatus      PaymentStatus    @default(NONE)
     registrationDate   DateTime         @default(now())
     QR                 String?
-    event              Event            @relation(fields: [eventId], references: [id])
+    event              Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
     userJourneys       UserJourney[]
 }

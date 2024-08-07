@@ -1,14 +1,16 @@
 model Employee {
     id           Int               @id @default(autoincrement())
     name         String
-    loginId      String            @unique
+    loginId      String
     phoneNo      String
     password     String
     refreshToken String?
     createdAt    DateTime          @default(now())
     adminId      Int
-    Admin        Admin             @relation(fields: [adminId], references: [id])
+    Admin        Admin             @relation(fields: [adminId], references: [id], onDelete: Cascade)
     assignments  EventAssignment[]
+
+    @@unique([adminId, loginId])
 }
 
 model EventAssignment {
@@ -16,8 +18,8 @@ model EventAssignment {
     employeeId Int
     eventId    Int
     role       String?
-    employee   Employee @relation(fields: [employeeId], references: [id])
-    event      Event    @relation(fields: [eventId], references: [id])
+    employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
     @@unique([employeeId, eventId])
 }

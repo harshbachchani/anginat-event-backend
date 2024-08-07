@@ -6,6 +6,6 @@ model UserJourney {
     userId            Int
     createdAt         DateTime          @default(now())
     order             Int?
-    event             Event             @relation(fields: [eventId], references: [id])
-    EventRegistration EventRegistration @relation(fields: [userId], references: [id])
+    event             Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+    EventRegistration EventRegistration @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

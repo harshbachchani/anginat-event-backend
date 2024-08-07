@@ -15,8 +15,9 @@ model Event {
     eventTemplate      Json
     attendieType       String[]
     createdAt          DateTime            @default(now())
+    design             String
     adminId            Int // Foreign key field
-    admin              Admin               @relation(fields: [adminId], references: [id]) // Define the relation
+    admin              Admin               @relation(fields: [adminId], references: [id], onDelete: Cascade) // Define the relation
     eventRegistrations EventRegistration[]
     userJournerys      UserJourney[]
     eventAssignments   EventAssignment[]

@@ -2,6 +2,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import prisma from "../db/config.js";
+import { uploadOnCloudinary } from "../utils/clodinary.js";
 
 const registerEvent = asyncHandler(async (req, res, next) => {
   try {
@@ -25,16 +26,17 @@ const registerEvent = asyncHandler(async (req, res, next) => {
       eventTemplate,
       attendieType,
     ];
+
     if (fields.some((field) => field === undefined)) {
       return next(new ApiError(400, "All fields are required"));
     }
+    const designloacalpath = req.files?.buffer;
+    if (!designloacalpath)
+      return next(new ApiError(400, "Cannot get local path of design"));
     if (!Date.parse(startDate) || !Date.parse(endDate)) {
       return next(new ApiError(400, "Invalid date formats"));
     }
-    console.log(`Start date is :${startDate}`);
-    console.log(`End date is :${endDate}`);
-    console.log(`Type of start date is :${typeof startDate}`);
-    console.log(`Type of End date is :${typeof endDate}`);
+
     // if (new Date(startDate) < new Date())
     //   return next(
     //     new ApiError(400, "Event Start date should be greater then today'date")
@@ -58,6 +60,14 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     } catch (error) {
       return next(new ApiError(400, "Invalid JSON for Attendie Type", error));
     }
+    let design;
+    try {
+      design = await uploadOnCloudinary(designloacalpath);
+    } catch (error) {
+      return next(
+        new ApiError(500, "Error on uploading design on clodinary", error)
+      );
+    }
 
     const event = await prisma.event.create({
       data: {
@@ -66,6 +76,7 @@ const registerEvent = asyncHandler(async (req, res, next) => {
         address,
         startDate: startDate,
         endDate: endDate,
+        design: design.url,
         userJourney: parsedUserJourney,
         eventTemplate: parsedEventTemplate,
         attendieType: parsedAttendieType,
