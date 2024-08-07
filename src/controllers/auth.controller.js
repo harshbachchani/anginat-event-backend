@@ -69,6 +69,7 @@ const verifyEmail = asyncHandler(async (req, res, next) => {
   }
 });
 const fullRegisteration = asyncHandler(async (req, res, next) => {
+  console.log(req.body);
   try {
     const { userId, token, companyName, phoneNo } = req.body;
     if (!companyName || !phoneNo)
