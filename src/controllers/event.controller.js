@@ -71,7 +71,7 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     } else {
       design = null;
     }
-
+    console.log(req.user);
     const event = await prisma.event.create({
       data: {
         eventName,
@@ -86,7 +86,7 @@ const registerEvent = asyncHandler(async (req, res, next) => {
         adminId: parseInt(req.user.id),
       },
     });
-
+    console.log("Hii there");
     if (!event) return next(new ApiError(500, "Error in creating event"));
     try {
       event.eventTemplate = JSON.stringify(event.eventTemplate);
