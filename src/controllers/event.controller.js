@@ -30,9 +30,6 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     if (fields.some((field) => field === undefined)) {
       return next(new ApiError(400, "All fields are required"));
     }
-    const designloacalpath = req.file?.buffer;
-    if (!designloacalpath)
-      return next(new ApiError(400, "Cannot get local path of design"));
     if (!Date.parse(startDate) || !Date.parse(endDate)) {
       return next(new ApiError(400, "Invalid date formats"));
     }
@@ -60,13 +57,19 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     } catch (error) {
       return next(new ApiError(400, "Invalid JSON for Attendie Type", error));
     }
+    const designlocalpath = req.file?.buffer;
     let design;
-    try {
-      design = await uploadOnCloudinary(designloacalpath);
-    } catch (error) {
-      return next(
-        new ApiError(500, "Error on uploading design on clodinary", error)
-      );
+    if (designlocalpath) {
+      try {
+        const a = await uploadOnCloudinary(designlocalpath);
+        design = a.url;
+      } catch (error) {
+        return next(
+          new ApiError(500, "Error on uploading design on clodinary", error)
+        );
+      }
+    } else {
+      design = null;
     }
 
     const event = await prisma.event.create({
@@ -76,7 +79,7 @@ const registerEvent = asyncHandler(async (req, res, next) => {
         address,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        design: design.url,
+        design: design,
         userJourney: parsedUserJourney,
         eventTemplate: parsedEventTemplate,
         attendieType: parsedAttendieType,
