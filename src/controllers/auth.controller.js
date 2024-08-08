@@ -421,7 +421,7 @@ const googleCheck = asyncHandler(async (req, res) => {
       res.setHeader("accessToken", accessToken);
       res.setHeader("refreshToken", refreshToken);
       res.redirect(
-        `https://event-frontend-omega.vercel.app/dashboard?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}`
+        `https://event-frontend-omega.vercel.app/google/Login?accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}`
       );
     } else {
       return res.redirect(

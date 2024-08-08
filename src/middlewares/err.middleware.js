@@ -14,6 +14,7 @@ const errHandler = (err, req, res, next) => {
     success: false,
     message: "Internal Server Error",
     errors: [],
+    statusCode: 500,
   });
 };
 
