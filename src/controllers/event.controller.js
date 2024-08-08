@@ -45,18 +45,18 @@ const registerEvent = asyncHandler(async (req, res, next) => {
     } catch (error) {
       return next(new ApiError(400, "Invalid JSON for Event Template", error));
     }
-    let parsedUserJourney;
-    try {
-      parsedUserJourney = JSON.parse(userJourney);
-    } catch (error) {
-      return next(new ApiError(400, "Invalid JSON for User Journey", error));
-    }
-    let parsedAttendieType;
-    try {
-      parsedAttendieType = JSON.parse(attendieType);
-    } catch (error) {
-      return next(new ApiError(400, "Invalid JSON for Attendie Type", error));
-    }
+    // let parsedUserJourney;
+    // try {
+    //   parsedUserJourney = JSON.parse(userJourney);
+    // } catch (error) {
+    //   return next(new ApiError(400, "Invalid JSON for User Journey", error));
+    // }
+    // let parsedAttendieType;
+    // try {
+    //   parsedAttendieType = JSON.parse(attendieType);
+    // } catch (error) {
+    //   return next(new ApiError(400, "Invalid JSON for Attendie Type", error));
+    // }
     const designlocalpath = req.file?.buffer;
     let design;
     if (designlocalpath) {
@@ -80,10 +80,14 @@ const registerEvent = asyncHandler(async (req, res, next) => {
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         design: design,
-        userJourney: parsedUserJourney,
+        userJourney: [],
         eventTemplate: parsedEventTemplate,
-        attendieType: parsedAttendieType,
-        adminId: parseInt(req.user.id),
+        attendieType: [],
+        admin: {
+          connect: {
+            id: parseInt(req.user?.id),
+          },
+        },
       },
     });
     console.log("Hii there");
